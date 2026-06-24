@@ -1,0 +1,194 @@
+:root {
+    --color-verde-neon: #a3e635; /* El verde de tu app */
+    --bg-dark: #020806;
+}
+
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark);
+    z-index: 99999; /* Por encima de absolutamente todo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    
+    /* Salida limpia usando transiciones aceleradas por hardware */
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                transform 0.8s cubic-bezier(0.25, 1, 0.5, 1),
+                filter 0.8s ease;
+                
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    /* Efecto Cyberpunk de líneas de escaneo (Scanlines) */
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                      linear-gradient(90deg, rgba(255, 0, 0, 0.05), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.05));
+    background-size: 100% 4px, 6px 100%;
+}
+
+/* Luces de fondo de neón masivas para deponer al logo gigante */
+.splash-bg-glow {
+    position: absolute;
+    width: 80vw; 
+    height: 80vw;
+    max-width: 750px;
+    max-height: 750px;
+    background: radial-gradient(circle, rgba(163, 230, 53, 0.15) 0%, rgba(0,0,0,0) 70%);
+    top: 50%;
+    left: 50%;
+    
+    /* CORRECCIÓN: Usamos la propiedad independiente 'scale' para no pisar el 'transform' de centrado */
+    transform: translate(-50%, -50%);
+    filter: blur(70px);
+    animation: pulseGlow 4s infinite alternate ease-in-out;
+}
+
+.splash-content {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    width: 95%; 
+    max-width: 800px;
+    padding: 20px;
+}
+
+/* --- EL NUEVO LOGO GIGANTE "FENIX" --- */
+.splash-logo {
+    color: #ffffff;
+    font-size: clamp(3.5rem, 15vw, 9rem); 
+    font-weight: 900;
+    letter-spacing: 0.35em; 
+    margin: 0;
+    text-transform: uppercase;
+    
+    /* Degradado interno de titanio iluminado */
+    background: linear-gradient(180deg, #ffffff 45%, #a3e635 150%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* Sombra de neón reforzada de alta densidad */
+    filter: drop-shadow(0 0 15px rgba(163, 230, 53, 0.45)) 
+            drop-shadow(0 0 40px rgba(163, 230, 53, 0.2));
+            
+    animation: logoEntrance 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    position: relative;
+    padding-left: 0.35em; 
+}
+
+/* Ajuste del efecto glitch cromático */
+.splash-logo::after {
+    content: attr(data-text);
+    position: absolute;
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%;
+    -webkit-text-fill-color: #00ffff; 
+    opacity: 0;
+    mix-blend-mode: screen;
+    animation: glitchGlow 4s infinite 1.5s;
+}
+
+/* --- ZONA DE CARGA --- */
+.splash-status {
+    margin-top: 40px;
+    opacity: 0;
+    animation: fadeInStatus 0.8s ease 0.5s forwards;
+}
+
+#splash-text {
+    color: #8E9A96;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+/* Barra de Progreso Avanzada */
+.splash-progress-bar {
+    width: 240px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.5);
+}
+
+#splash-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, #65a30d, var(--color-verde-neon));
+    box-shadow: 0 0 12px var(--color-verde-neon);
+    border-radius: 10px;
+    transition: width 0.2s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+#splash-percentage {
+    display: block;
+    color: var(--color-verde-neon);
+    font-size: 11px;
+    margin-top: 8px;
+    font-weight: bold;
+    font-family: monospace;
+    letter-spacing: 1px;
+}
+
+/* --- ANIMACIONES OPTIMIZADAS (GPU FRIENDLY) --- */
+@keyframes pulseGlow {
+    0% { scale: 0.85; opacity: 0.6; }
+    100% { scale: 1.15; opacity: 1; }
+}
+
+@keyframes logoEntrance {
+    0% { 
+        transform: translateY(-30px) scale(0.9); 
+        opacity: 0; 
+        filter: blur(20px); 
+        letter-spacing: 0.6em; 
+    }
+    100% { 
+        transform: translateY(0) scale(1); 
+        opacity: 1; 
+        filter: blur(0); 
+        letter-spacing: 0.35em; 
+    }
+}
+
+@keyframes glitchGlow {
+    0%, 85%, 89%, 93%, 97%, 100% { opacity: 0; transform: translateX(0); filter: blur(0); }
+    87%, 91% { opacity: 0.8; color: #00ffff; transform: translateX(-4px); filter: blur(1px); }
+    90%, 95% { opacity: 0.8; color: #ff0055; transform: translateX(4px); filter: blur(0.5px); }
+}
+
+@keyframes fadeInStatus {
+    to { opacity: 1; }
+}
+
+/* CORRECCIÓN: Clase que ejecuta la salida fluida sin tirones gráficos */
+.splash-exit {
+    opacity: 0 !important;
+    transform: scale(1.05);
+    filter: blur(12px);
+    pointer-events: none;
+}
+
+/* --- CONTROL ULTRA RESPONSIVO PARA EL LOGO GIGANTE --- */
+@media (max-width: 768px) {
+    .splash-logo {
+        letter-spacing: 0.28em;
+        padding-left: 0.28em;
+    }
+}
+
+@media (max-width: 480px) {
+    .splash-logo {
+        letter-spacing: 0.18em;
+        padding-left: 0.18em;
+    }
+}

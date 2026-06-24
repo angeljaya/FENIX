@@ -1,0 +1,975 @@
+ :root {
+            --bg-principal: #040d0a;
+            --bg-tarjeta: rgba(8, 24, 18, 0.55);
+            --bg-input: rgba(12, 38, 28, 0.7);
+            --texto-principal: #f0fdf4;
+            --texto-secundario: #86efac;
+            --color-acento: #10b981;
+            --color-verde-neon: #22c55e;
+            --color-reaccion: #14b8a6;
+            --borde-suave: rgba(34, 197, 94, 0.1);
+            --premium-gradiente: linear-gradient(135deg, #10b981, #22c55e, #a3e635);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body {
+    /* 1. Profundidad Absoluta */
+    background-color: #020604; /* Cambiado de #000 puro a un negro orgánico hiper-oscuro */
+    
+    /* 2. Composición de Capas de Fondo (Multi-layer Background) */
+    background-image: 
+        /* Capa superior: Viñeta radial que ilumina el centro de la pantalla y oscurece las esquinas */
+        radial-gradient(circle at 50% 50%, transparent 25%, #000000 90%),
+        /* Capa intermedia y trasera: Tu rejilla neón original estilizada con precisión de silicio */
+        linear-gradient(rgba(34, 197, 94, 0.015) 1px, transparent 1px), 
+        linear-gradient(90deg, rgba(34, 197, 94, 0.015) 1px, transparent 1px);
+        
+    /* 3. Escala y Anclaje Fijo */
+    background-size: 100% 100%, 36px 36px, 36px 36px; 
+    background-position: center;
+    background-attachment: fixed; /* Mantiene la rejilla y la luz en su lugar mientras el contenido hace scroll */
+    
+    /* 4. Tipografía y Estética de Interfaz */
+    color: var(--texto-principal); 
+    min-height: 100vh; 
+    overflow-x: hidden; 
+    position: relative;
+    
+    /* 5. Suavizado de Fuentes por Hardware */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+/* Corrección de Avatar en área de publicación */
+.crear-avatar-mini {
+    width: 45px !important;
+    height: 45px !important;
+    min-width: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-verde-neon);
+}
+
+/* Asegurar que la zona de subida no se expanda de más */
+.crear-fila-principal {
+    display: flex; 
+    gap: 12px; 
+    align-items: center; /* Alineación centrada verticalmente */
+    margin-bottom: 12px;
+}
+        /* HEADER Y NAVEGACIÓN */
+        /* --- CONFIGURACIÓN DEL HEADER ULTRA-PREMIUM (VIVO Y DINÁMICO) --- */
+header {
+    background: linear-gradient(
+        to bottom, 
+        rgba(6, 20, 15, 0.8) 0%, 
+        rgba(4, 13, 10, 0.65) 100%
+    ); 
+    backdrop-filter: blur(30px) saturate(180%); 
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
+    
+    /* El borde inferior ahora tiene un sutil pulso de energía respiratorio */
+    border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+    padding: 14px 40px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    position: sticky; 
+    top: 0; 
+    z-index: 100;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Animación para que el borde inferior "respire" luz neón constantemente */
+    animation: energiaHeader 8s infinite alternate ease-in-out;
+}
+
+header.scroll-active {
+    padding: 10px 40px;
+    background: rgba(4, 13, 10, 0.92);
+    border-bottom-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(34, 197, 94, 0.05);
+}
+
+/* --- LOGO CON FLUJO DE LUZ INFINITO --- */
+.logo-fenix { 
+    font-size: 70px; 
+    font-weight: 950; 
+    letter-spacing: 6px; 
+    text-transform: uppercase;
+    
+    /* Gradiente expandido para permitir el desplazamiento del color */
+    background: linear-gradient(
+        90deg, 
+        #fff 0%, 
+        var(--color-verde-neon, #22c55e) 25%, 
+        #a3e635 50%, 
+        var(--color-verde-neon, #22c55e) 75%, 
+        #fff 100%
+    );
+    background-size: 300% auto;
+    -webkit-background-clip: text; 
+    -webkit-text-fill-color: transparent; 
+    cursor: pointer; 
+    
+    /* Efecto holográfico constante */
+    filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.25));
+    animation: flujoNeonLogo 6s linear infinite;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logo-fenix:hover {
+    transform: translateY(-1px) scale(1.02);
+    filter: drop-shadow(0 0 15px rgba(34, 197, 94, 0.6));
+    font-size: 75px;
+
+}
+
+/* --- CONTENEDOR DE ACCIONES --- */
+.header-acciones { 
+    display: flex; 
+    align-items: center; 
+    gap: 24px; 
+}
+
+/* --- BOTONES CON BARRIDO LÁSER (SHIMMER) --- */
+.btn-header-icon { 
+    position: relative; 
+    background: rgba(255, 255, 255, 0.02); 
+    border: none; 
+    color: rgba(255, 255, 255, 0.7); 
+    font-size: 20px; 
+    cursor: pointer; 
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    overflow: hidden; /* Crucial para el destello láser interior */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* El destello de luz oculto que cruza el botón */
+.btn-header-icon::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -150%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.4), transparent);
+    transform: skewX(-20deg);
+}
+
+/* Al pasar el mouse, el destello corre velozmente */
+.btn-header-icon:hover { 
+    color: #fff;
+    background: rgba(34, 197, 94, 0.12);
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.25);
+    transform: translateY(-2px);
+}
+
+.btn-header-icon:hover::before {
+    animation: destelloLaser 0.75s forwards;
+}
+
+.btn-header-icon:active {
+    transform: scale(0.92) translateY(0);
+}
+
+/* --- INDICADOR DE NOTIFICACIÓN RADAR --- */
+.punto-rojo { 
+    position: absolute; 
+    top: 6px; 
+    right: 6px; 
+    width: 8px; 
+    height: 8px; 
+    background-color: #ff3333; 
+    border-radius: 50%; 
+    display: none; /* Controlado dinámicamente por Firebase */
+    animation: pulsoRadar 1.6s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* --- AVATAR CON ÓRBITA CIRCULAR EN MOVIMIENTO --- */
+.avatar-menu-trigger { 
+    width: 40px; 
+    height: 40px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    padding: 3px;
+    
+    /* Creamos un borde animado usando un fondo cónico que gira */
+    background: conic-gradient(
+        from 0deg, 
+        var(--color-verde-neon, #22c55e) 0%, 
+        rgba(34, 197, 94, 0.1) 40%, 
+        var(--color-verde-neon, #22c55e) 50%, 
+        rgba(34, 197, 94, 0.1) 90%, 
+        var(--color-verde-neon, #22c55e) 100%
+    );
+    cursor: pointer; 
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.1);
+    animation: orbitaAvatar 4s linear infinite;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Evita que la foto interna gire junto con el borde */
+.avatar-menu-trigger:hover { 
+    transform: scale(1.1); 
+    box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+    animation-play-state: paused; /* Congela el giro para enfocar el perfil */
+}
+
+.avatar-menu-trigger:active {
+    transform: scale(0.95);
+}
+
+
+/* --- KEYFRAMES DE ANIMACIONES (EL MOTOR DE VIDA) --- */
+
+/* 1. Pulso de respiración del Header completo */
+@keyframes energiaHeader {
+    0% { border-bottom-color: rgba(34, 197, 94, 0.15); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); }
+    100% { border-bottom-color: rgba(34, 197, 94, 0.35); box-shadow: 0 4px 35px rgba(34, 197, 94, 0.05); }
+}
+
+/* 2. El flujo continuo de color neón en el texto del Logo */
+@keyframes flujoNeonLogo {
+    0% { background-position: 0% center; }
+    100% { background-position: 300% center; }
+}
+
+/* 3. El rayo láser que cruza los botones de los iconos */
+@keyframes destelloLaser {
+    0% { left: -150%; }
+    100% { left: 150%; }
+}
+
+/* 4. Efecto de sonar/radar expansivo para las notificaciones */
+@keyframes pulsoRadar {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.7), 0 0 0 0 rgba(255, 51, 51, 0.4); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 51, 51, 0), 0 0 0 12px rgba(255, 51, 51, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(255, 51, 51, 0), 0 0 0 0 rgba(255, 51, 51, 0); }
+}
+
+/* 5. Rotación de la línea perimetral de energía en el avatar */
+@keyframes orbitaAvatar {
+    100% { transform: rotate(360deg); }
+}
+
+        /* ==========================================================================
+   WRAPPER GENERAL & ESTRUCTURA DE LA RED INTERCONECTADA
+   ========================================================================== */
+.wrapper-general { 
+    display: flex; 
+    justify-content: center; 
+    gap: 32px; /* Mayor separación para que el aire entre componentes respire */
+    max-width: 1150px; 
+    margin: 30px auto; 
+    padding: 0 20px; 
+    perspective: 1000px; /* Prepara el espacio para sutiles efectos 3D si se requieren */
+}
+
+/* ==========================================================================
+   PANEL IZQUIERDO: HUD DE MONITOREO PERIFÉRICO
+   ========================================================================== */
+.panel-izquierdo { 
+    display: none; 
+    width: 290px; 
+    flex-shrink: 0; 
+    position: sticky;
+    top: 90px; /* Se acopla perfectamente si tu header mide aprox 60-70px */
+    height: fit-content;
+}
+
+@media (min-width: 850px) { 
+    .panel-izquierdo { 
+        display: block; 
+        animation: entradaTerminal 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    } 
+}
+
+/* --- DETALLES DE LAS TARJETAS WIDGET (CRISTAL FLOTANTE SCI-FI) --- */
+.widget-panel { 
+    background: linear-gradient(135deg, rgba(6, 20, 15, 0.65) 0%, rgba(3, 8, 6, 0.45) 100%); 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px; 
+    padding: 20px; 
+    border: 1px solid rgba(34, 197, 94, 0.12); 
+    margin-bottom: 24px; 
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Pequeñas esquinas tácticas iluminadas */
+.widget-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 8px; height: 8px;
+    border-top: 2px solid var(--color-verde-neon, #22c55e);
+    border-left: 2px solid var(--color-verde-neon, #22c55e);
+    opacity: 0.4;
+}
+
+.widget-panel:hover {
+    border-color: rgba(34, 197, 94, 0.3);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6), 0 0 15px rgba(34, 197, 94, 0.03);
+}
+
+/* --- TÍTULO DE CONTENEDORES: SEÑAL DE RED --- */
+.widget-titulo { 
+    font-size: 12px; 
+    font-weight: 900; 
+    color: var(--color-verde-neon, #22c55e); 
+    text-transform: uppercase; 
+    letter-spacing: 2px;
+    margin-bottom: 18px; 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+}
+
+/* --- TARGETAS DE EVENTOS INTERNAS (MÓDULOS DATA-PACK) --- */
+.evento-card { 
+    background: rgba(4, 13, 10, 0.6); 
+    border-radius: 14px; 
+    padding: 12px; 
+    text-align: center; 
+    margin-bottom: 12px; 
+    border: 1px solid rgba(255, 255, 255, 0.04); 
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.evento-card img { 
+    width: 100%; 
+    height: 100px; 
+    object-fit: cover; 
+    border-radius: 10px; 
+    margin-bottom: 10px; 
+    filter: grayscale(20%) brightness(90%);
+    transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.evento-card:hover {
+    background: rgba(6, 20, 15, 0.8);
+    border-color: rgba(34, 197, 94, 0.25);
+    transform: scale(1.02);
+}
+
+.evento-card:hover img {
+    filter: grayscale(0%) brightness(100%);
+    transform: scale(1.01);
+}
+
+/* --- BOTONES DE INTERACCIÓN PERIFÉRICA --- */
+.btn-accion-widget { 
+    width: 100%; 
+    background: rgba(34, 197, 94, 0.06); 
+    color: #ffffff; 
+    border: 1px solid rgba(34, 197, 94, 0.3); 
+    padding: 10px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+    font-size: 13px;
+    font-weight: 800; 
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-accion-widget:hover { 
+    background: linear-gradient(90deg, #22c55e 0%, #10b981 100%);
+    color: #030a07; 
+    border-color: transparent;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
+    transform: translateY(-1px);
+}
+
+.btn-accion-widget:active {
+    transform: scale(0.97) translateY(0);
+}
+
+/* --- LISTA DE RECURSOS: CELDAS DE INDEXACIÓN --- */
+.recurso-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    background: rgba(255, 255, 255, 0.02); 
+    padding: 12px 14px; 
+    border-radius: 12px; 
+    font-size: 13px; 
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    margin-bottom: 10px; 
+    cursor: pointer; 
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.recurso-item i {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 16px;
+    transition: color 0.25s ease, transform 0.25s ease;
+}
+
+.recurso-item:hover { 
+    background: rgba(34, 197, 94, 0.08); 
+    border-color: rgba(34, 197, 94, 0.2);
+    color: #ffffff;
+    padding-left: 18px; /* Pequeño desplazamiento dinámico */
+    box-shadow: inset 0 0 10px rgba(34, 197, 94, 0.05);
+}
+
+.recurso-item:hover i {
+    color: var(--color-verde-neon, #22c55e);
+    transform: scale(1.15);
+}
+
+
+/* ==========================================================================
+   ANIMACIONES CORE POR HARDWARE
+   ========================================================================== */
+@keyframes entradaTerminal {
+    0% {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+        /* --- MURO CENTRAL: CONSOLA DE INDEXACIÓN CUÁNTICA (NIVEL DIOS) --- */
+.layout-principal { 
+    width: 100%; 
+    max-width: 580px; /* Ligero margen extra para espaciado premium */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* --- CONTENEDOR PRINCIPAL: TERMINAL DE ENTRADA --- */
+.crear-publicacion { 
+    background: linear-gradient(135deg, rgba(6, 20, 15, 0.7) 0%, rgba(4, 11, 9, 0.4) 100%); 
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 24px; 
+    padding: 22px; 
+    border: 1px solid rgba(34, 197, 94, 0.15); 
+    margin-bottom: 10px; 
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+/* Decoración estética de terminal en la esquina */
+.crear-publicacion::before {
+    content: 'SYS // INPUT_NODE';
+    position: absolute;
+    top: 6px;
+    right: 16px;
+    font-family: monospace;
+    font-size: 8px;
+    color: rgba(34, 197, 94, 0.3);
+    letter-spacing: 2px;
+}
+
+.crear-publicacion:focus-within {
+    border-color: rgba(34, 197, 94, 0.4);
+    box-shadow: 0 15px 50px rgba(34, 197, 94, 0.08), 0 0 1px rgba(34, 197, 94, 0.2);
+}
+
+/* --- FILA DE ENTRADA DE DATOS --- */
+.crear-fila-principal { 
+    display: flex; 
+    gap: 16px; 
+    align-items: flex-start; 
+    margin-bottom: 16px; 
+}
+
+/* --- TEXTAREA: CAPTURA DE PENSAMIENTO --- */
+.crear-publicacion textarea { 
+    flex: 1; 
+    height: 60px; 
+    background: transparent; 
+    color: #ffffff; 
+    border: none; 
+    resize: none; 
+    font-size: 15px; 
+    line-height: 1.6;
+    outline: none; 
+    padding-top: 4px; 
+    font-family: system-ui, -apple-system, sans-serif;
+    transition: color 0.3s ease;
+}
+
+.crear-publicacion textarea::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+    transition: opacity 0.3s ease;
+}
+
+.crear-publicacion textarea:focus::placeholder {
+    opacity: 0.15;
+}
+
+/* --- DROPZONE: MATRIZ DE ESCANEO HOLOGRÁFICO --- */
+.zona-subida-atractiva { 
+    position: relative;
+    border: 1px dashed rgba(34, 197, 94, 0.25); 
+    padding: 20px 14px; 
+    border-radius: 16px; 
+    text-align: center; 
+    cursor: pointer; 
+    margin-bottom: 20px; 
+    background: rgba(34, 197, 94, 0.01);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Línea láser de escaneo que aparece en hover */
+.zona-subida-atractiva::after {
+    content: '';
+    position: absolute;
+    top: -10%; left: 0; width: 100%; height: 6px;
+    background: linear-gradient(to bottom, rgba(34, 197, 94, 0.5), transparent);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.zona-subida-atractiva:hover { 
+    border-style: solid;
+    border-color: var(--color-verde-neon, #22c55e); 
+    background: rgba(34, 197, 94, 0.05);
+    box-shadow: inset 0 0 15px rgba(34, 197, 94, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Activación de la animación láser al hacer hover */
+.zona-subida-atractiva:hover::after {
+    opacity: 1;
+    animation: escanerLaser 2s infinite linear;
+}
+
+/* --- SECCIÓN DE CONTROL INFERIOR --- */
+.input-opciones { 
+    border-top: 1px dashed rgba(34, 197, 94, 0.12); 
+    padding-top: 16px; 
+    display: flex; 
+    justify-content: flex-end; 
+    align-items: center; 
+    gap: 14px;
+}
+
+/* --- SELECTOR CYBERNETIC --- */
+.selector-carrera-post { 
+    background: rgba(4, 13, 10, 0.8); 
+    color: rgba(255, 255, 255, 0.85); 
+    border: 1px solid rgba(34, 197, 94, 0.2); 
+    padding: 10px 16px; 
+    border-radius: 12px; 
+    font-size: 13px; 
+    font-weight: 500;
+    outline: none; 
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selector-carrera-post:hover {
+    border-color: var(--color-verde-neon, #22c55e);
+    color: #ffffff;
+    background: rgba(6, 20, 15, 0.9);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.1);
+}
+
+/* --- BOTÓN DE LANZAMIENTO: NÚCLEO DE SOBRECARGA ENERGÉTICA --- */
+.btn-publicar { 
+    background: linear-gradient(
+        135deg, 
+        #22c55e 0%, 
+        #a3e635 33%, 
+        #22c55e 66%, 
+        #10b981 100%
+    ); 
+    background-size: 300% auto;
+    color: #030a07; 
+    border: none; 
+    padding: 10px 28px; 
+    border-radius: 14px; 
+    font-weight: 800; 
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer; 
+    box-shadow: 0 4px 20px rgba(34, 197, 94, 0.3);
+    will-change: transform, background-position, box-shadow;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-publicar:hover { 
+    transform: translateY(-2px);
+    background-position: right center; /* Desplaza el núcleo de color velozmente */
+    box-shadow: 0 6px 25px rgba(34, 197, 94, 0.5), 0 0 15px rgba(163, 230, 53, 0.3);
+}
+
+.btn-publicar:active {
+    transform: translateY(0) scale(0.95);
+    box-shadow: 0 2px 10px rgba(34, 197, 94, 0.4);
+}
+
+/* --- ANIMACIONES ADICIONALES POR HARDWARE --- */
+@keyframes escanerLaser {
+    0% { top: -10%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 110%; opacity: 0; }
+}
+
+       /* ==========================================================================
+   TARJETAS DE PUBLICACIÓN (POST CARDS CYBERNETIC)
+   ========================================================================== */
+.post-card { 
+    background: linear-gradient(135deg, rgba(6, 20, 15, 0.55) 0%, rgba(3, 8, 6, 0.35) 100%); 
+    backdrop-filter: var(--cyber-blur, blur(25px));
+    -webkit-backdrop-filter: var(--cyber-blur, blur(25px));
+    border-radius: 24px; 
+    margin-bottom: 24px; 
+    border: 1px solid rgba(0, 255, 102, 0.08); 
+    overflow: hidden; 
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    position: relative;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                border-color 0.3s ease, 
+                box-shadow 0.3s ease;
+}
+
+/* Al pasar el cursor, la tarjeta se eleva sutilmente e intensifica su energía perimetral */
+.post-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 255, 102, 0.2);
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 255, 102, 0.02);
+}
+
+/* --- CABECERA DEL POST --- */
+.post-header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 16px 20px; 
+}
+
+.post-header-perfil { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    cursor: pointer; 
+}
+
+.post-header img { 
+    width: 44px; 
+    height: 44px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 1.5px solid rgba(0, 255, 102, 0.25);
+    padding: 2px;
+    background: var(--bg-principal, #020705);
+    transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+.post-header-perfil:hover img {
+    transform: scale(1.05) rotate(3deg);
+    border-color: var(--color-verde-neon, #00ff66);
+}
+
+/* --- BADGE / ETIQUETA DE CARRERA --- */
+.etiqueta-carrera { 
+    font-size: 10px; 
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 4px 10px; 
+    border-radius: 8px; 
+    background: rgba(0, 255, 102, 0.06); 
+    color: var(--color-verde-neon, #00ff66); 
+    border: 1px solid rgba(0, 255, 102, 0.15);
+    margin-left: 10px; 
+    text-transform: uppercase; 
+    box-shadow: inset 0 0 8px rgba(0, 255, 102, 0.03);
+}
+
+/* --- BLOQUE DE TEXTO / COMENTARIO --- */
+.post-comentario { 
+    padding: 6px 20px 16px 20px; 
+    font-size: 15px; 
+    line-height: 1.6;
+    color: #e2f3e8; /* Tono suavizado para mejorar la lectura prolongada */
+}
+
+/* --- CONTENEDOR MULTIMEDIA --- */
+.post-media-contenedor {
+    position: relative;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    overflow: hidden;
+}
+
+.post-media-contenedor img, 
+.post-media-contenedor video { 
+    width: 100%; 
+    display: block; 
+    max-height: 480px; 
+    object-fit: cover; 
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Efecto de expansión cinematográfica en la multimedia al hacer hover */
+.post-card:hover .post-media-contenedor img {
+    transform: scale(1.015);
+}
+
+/* --- PANEL DE CONTADORES DE MÉTRICAS --- */
+.post-contadores { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 14px 20px 8px 20px; 
+    font-size: 12px; 
+    color: var(--texto-secundario, #a3e635); 
+    opacity: 0.8;
+    font-weight: 600; 
+    letter-spacing: 0.3px;
+}
+
+/* --- REASTRUCTURACIÓN DE BOTONES DE ACCIÓN --- */
+.post-acciones-botones { 
+    display: flex; 
+    padding: 6px 12px; 
+    border-top: 1px dashed rgba(0, 255, 102, 0.08); /* Cambiado a top y estilo dashed */
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.btn-accion { 
+    background: transparent; 
+    border: none; 
+    padding: 10px 14px; 
+    flex: 1; 
+    font-weight: 700; 
+    color: rgba(255, 255, 255, 0.6); 
+    cursor: pointer; 
+    border-radius: 12px; 
+    font-size: 13px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px; 
+    will-change: transform, background, color;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-accion:hover { 
+    background-color: rgba(0, 255, 102, 0.06); 
+    color: #ffffff; 
+    transform: translateY(-1px);
+}
+
+.btn-accion:active {
+    transform: scale(0.96) translateY(0);
+}
+
+/* Estados específicos de Reacción Activa (Kinetic Glow) */
+.btn-corazon.reaccionado { 
+    color: var(--color-reaccion, #06b6d4); 
+    text-shadow: 0 0 10px rgba(6, 182, 212, 0.4);
+}
+
+.btn-corazon.reaccionado:hover {
+    background-color: rgba(6, 182, 212, 0.08);
+}
+        
+        /*post descatado*/
+        .post-destacado {
+        border: 2px solid var(--color-verde-neon) !important;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);}
+
+        /* COMENTARIOS */
+        .seccion-comentarios { background-color: rgba(0, 0, 0, 0.2); padding: 12px 16px; }
+        .lista-comentarios { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; max-height: 180px; overflow-y: auto; }
+        .comentario-item { font-size: 13px; background-color: rgba(34, 197, 94, 0.02); padding: 8px 12px; border-radius: 12px; color: #d1e7dd; }
+        .input-comentario-grupo { display: flex; gap: 8px; }
+        .input-comentario-grupo input { flex: 1; padding: 10px 16px; border-radius: 20px; border: 1px solid var(--borde-suave); background: var(--bg-input); color: white; font-size: 13px; outline: none; }
+        .btn-enviar-comentario { background-color: var(--color-acento); color: #040d0a; border: none; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+        /* SIDEBAR DERECHO (Configuraciones) */
+        .sidebar-fenix { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: #05140f; z-index: 200; transition: right 0.4s; padding: 30px 24px; border-left: 1px solid var(--borde-suave); overflow-y: auto; }
+        .sidebar-fenix.abierto { right: 0; }
+        .menu-lateral-btn { width: 100%; padding: 12px; background: rgba(16, 185, 129, 0.05); color: white; border: 1px solid var(--borde-suave); border-radius: 10px; margin-bottom: 10px; cursor: pointer; text-align: left; font-weight: bold; }
+
+        /* PERFIL TIPO INSTAGRAM (Modal Overlay) */
+        .modal-perfil { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 300; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .perfil-card { background: var(--bg-principal); border: 1px solid var(--borde-suave); width: 100%; max-width: 450px; border-radius: 24px; padding: 24px; text-align: center; position: relative; }
+        .perfil-cerrar { position: absolute; top: 15px; right: 20px; font-size: 24px; color: white; cursor: pointer; }
+        .perfil-foto-grande { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-verde-neon); margin-bottom: 10px; }
+        .perfil-stats { display: flex; justify-content: center; gap: 20px; margin: 15px 0; }
+        .stat-item { text-align: center; color: white; font-weight: bold; font-size: 18px; }
+        .stat-item span { display: block; font-size: 11px; color: var(--texto-secundario); font-weight: normal; text-transform: uppercase; }
+        .btn-seguir { background: var(--premium-gradiente); color: #000; border: none; padding: 8px 30px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        .btn-seguir.siguiendo { background: transparent; color: white; border: 1px solid var(--borde-suave); }
+        .perfil-bio { font-size: 14px; color: #e6f4ea; margin-bottom: 15px; line-height: 1.4; }
+        .perfil-detalles { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; text-align: left; font-size: 13px; color: #a1a1aa; }
+        .perfil-detalles p { margin-bottom: 6px; }
+        .perfil-detalles i { color: var(--color-verde-neon); width: 20px; text-align: center; margin-right: 5px; }
+
+        /* AUTH Y MODALES EXTRAS */
+        .auth-container { display: none; justify-content: center; align-items: center; min-height: 90vh; padding: 20px; }
+        .auth-card { background: rgba(6, 20, 15, 0.6); padding: 40px 30px; border-radius: 24px; width: 100%; max-width: 410px; text-align: center; border: 1px solid var(--borde-suave); }
+        .auth-card input, .btn-auth { width: 100%; padding: 14px; margin-bottom: 14px; border-radius: 12px; outline: none; }
+        .auth-card input { background: var(--bg-input); border: 1px solid var(--borde-suave); color: white; }
+        .btn-auth { background: var(--premium-gradiente); color: #040d0a; font-weight: bold; border: none; cursor: pointer; }
+        .app-plat { display: none; }
+        
+        .modal-generico { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 400; justify-content: center; align-items: center; }
+        .modal-cuerpo { background: var(--bg-principal); padding: 24px; border-radius: 16px; width: 90%; max-width: 400px; border: 1px solid var(--borde-suave); color: white; }
+/* Estilos Premium para las Tarjetas de Publicaciones */
+.publicacion-card-premium {
+    background: #0b1411;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.post-cabecera-premium {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding: 0 4px;
+}
+
+.post-autor-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.post-autor-nombre {
+    text-transform: capitalize;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    display: block;
+}
+
+.post-meta-detalles {
+    font-size: 11px;
+    color: var(--texto-secundario);
+    display: block;
+    margin-top: 2px;
+}
+
+/* Botón de eliminar con espacio seguro y sin tres puntos */
+.btn-eliminar-post-premium {
+    background: rgba(239, 68, 68, 0.05);
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.btn-eliminar-post-premium:hover {
+    background: rgba(239, 68, 68, 0.15);
+    transform: scale(1.05);
+}
+
+.post-cuerpo-premium {
+    margin-bottom: 14px;
+}
+
+.post-texto-contenido {
+    color: #e2e8f0;
+    font-size: 14px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+}
+
+/* Barra de Me Gusta y Comentar modernizada */
+.post-acciones-premium {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 8px 0;
+    margin-top: 12px;
+}
+
+.btn-interaccion-premium {
+    background: transparent;
+    border: none;
+    color: var(--texto-secundario);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s, color 0.2s;
+    flex: 1;
+    justify-content: center;
+}
+
+.btn-interaccion-premium:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff;
+}
+
+.btn-interaccion-premium.activo-like {
+    color: var(--color-verde-neon);
+    background: rgba(16, 185, 129, 0.04);
+}
+
+/* Zona de comentarios elegante */
+.post-comentarios-zona {
+    margin-top: 12px;
+    background: rgba(255, 255, 255, 0.01);
+    border-radius: 10px;
+    padding: 6px 4px;
+}
+
+.comentarios-lista-interna {
+    max-height: 250px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+
+.input-comentario-premium {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 24px;
+    padding: 10px 16px;
+    color: #ffffff;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.input-comentario-premium:focus {
+    border-color: var(--color-verde-neon);
+    background: rgba(255, 255, 255, 0.06);
+}
