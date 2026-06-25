@@ -35,11 +35,10 @@
         </div>
     </div>
 
-    <div id="vista-app" class="app-plat" style="display:none;">
+<div id="vista-app" class="app-plat" style="display:none;">
         <header>
             <div class="logo-fenix" onclick="location.reload()">FENIX</div>
             <div class="header-acciones">
-                <button type="button" class="btn-header-icon" title="Inicio" onclick="location.reload()"><i class="fa-solid fa-house"></i></button>
                 <button type="button" class="btn-header-icon" title="Notificaciones" onclick="abrirNotificaciones()">
                     <i class="fa-solid fa-bell"></i>
                     <div class="punto-rojo" id="indicador-notificacion" style="display:none;"></div>
@@ -60,21 +59,37 @@
             <button type="button" style="width:100%; padding:12px; background:rgba(239,68,68,0.1); color: #ef4444; border:none; border-radius: 10px; margin-top: 30px; font-weight:bold; cursor:pointer;" onclick="logout()">Cerrar Sesión</button>
         </div>
 
-        <div class="wrapper-general">
-            <aside class="panel-izquierdo">
-                <div class="widget-panel">
-                    <h4 class="widget-titulo"><i class="fa-solid fa-bullhorn"></i> Anuncios y Recursos</h4>
-                    <p style="font-size:12px; color:var(--texto-secundario); margin-bottom: 10px;">Material de apoyo del CEA</p>
-                    <div id="contenedor-recursos"></div>
-                    <button type="button" id="btn-subir-recurso" class="btn-accion-widget" onclick="subirRecursoProfesor()" style="margin-top: 10px; display:none;">+ Subir Recurso (Solo Docentes)</button>
-                </div>
-                <div class="widget-panel">
-                    <h4 class="widget-titulo"><i class="fa-solid fa-calendar-days"></i> Eventos y Cumpleaños</h4>
-                    <div id="contenedor-eventos"></div>
-                    <button type="button" id="btn-crear-evento" class="btn-accion-widget" onclick="crearNuevoEvento()" style="margin-top:10px; display:none;">+ Crear Evento</button>
-                </div>
-            </aside>
+<div id="sidebar" class="sidebar-fenix">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <h3 style="color:white;">Mi Cuenta</h3>
+                <span style="color:var(--texto-secundario); cursor:pointer; font-size:24px;" onclick="conmutarSidebar(false)">&times;</span>
+            </div>
+            <div class="perfil-info-box" id="box-perfil-data" style="text-align:center; margin-bottom: 30px;"></div>
+            <button type="button" class="menu-lateral-btn" onclick="abrirMiPerfil()"><i class="fa-solid fa-user"></i> Ver mi Perfil Público</button>
+            <button type="button" class="menu-lateral-btn" onclick="verMiHistorialReal()"><i class="fa-solid fa-clock-rotate-left"></i> Mi Historial de Actividades</button>
+            <button type="button" class="menu-lateral-btn" onclick="abrirConfiguracion()"><i class="fa-solid fa-gear"></i> Configuración</button>
+            <button type="button" style="width:100%; padding:12px; background:rgba(239,68,68,0.1); color: #ef4444; border:none; border-radius: 10px; margin-top: 30px; font-weight:bold; cursor:pointer;" onclick="logout()">Cerrar Sesión</button>
+        </div>
 
+        <aside class="panel-izquierdo oculto" id="panel-izquierdo">
+            <button type="button" id="btn-cajon" onclick="togglePanelLateral()">
+                <i class="fa-solid fa-bullhorn"></i>
+            </button>
+
+            <div class="widget-panel">
+                <h4 class="widget-titulo"><i class="fa-solid fa-bullhorn"></i> Anuncios y Recursos</h4>
+                <p style="font-size:12px; color:var(--texto-secundario); margin-bottom: 10px;">Material de apoyo del CEA</p>
+                <div id="contenedor-recursos"></div>
+                <button type="button" id="btn-subir-recurso" class="btn-accion-widget" onclick="subirRecursoProfesor()" style="margin-top: 10px; display:none;">+ Subir Recurso (Solo Docentes)</button>
+            </div>
+            <div class="widget-panel">
+                <h4 class="widget-titulo"><i class="fa-solid fa-calendar-days"></i> Eventos y Cumpleaños</h4>
+                <div id="contenedor-eventos"></div>
+                <button type="button" id="btn-crear-evento" class="btn-accion-widget" onclick="crearNuevoEvento()" style="margin-top:10px; display:none;">+ Crear Evento</button>
+            </div>
+        </aside>
+
+        <div class="wrapper-general">
             <main class="layout-principal">
                 <div class="crear-publicacion">
                     <div class="crear-fila-principal">
@@ -105,7 +120,6 @@
                 </div>
             </main>
         </div>
-    </div>
 
     <div id="modal-perfil" class="modal-perfil">
         <div class="perfil-card">
@@ -1121,7 +1135,7 @@ window.cargarRecursosYEventos = function() {
             });
         };
 
-        window.escucharNotificaciones = function() {
+window.escucharNotificaciones = function() {
             const q = query(collection(db, "notificaciones"), where("destino", "==", window.usuarioActualGlobal.nombre), where("leido", "==", false));
             onSnapshot(q, (snap) => {
                 const punto = document.getElementById("indicador-notificacion");
@@ -1158,6 +1172,16 @@ window.cargarRecursosYEventos = function() {
             });
             contenedor.innerHTML = htmlStr;
             document.getElementById("indicador-notificacion").style.display = "none";
+        };
+
+        // ==========================================================================
+        // CONTROL INTERACTIVO DEL CAJÓN DESLIZABLE SCI-FI
+        // ==========================================================================
+        window.togglePanelLateral = function() {
+            const panel = document.getElementById('panel-izquierdo');
+            if (panel) {
+                panel.classList.toggle('oculto');
+            }
         };
     </script>
 </body>

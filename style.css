@@ -270,24 +270,57 @@ header.scroll-active {
 }
 
 /* ==========================================================================
-   PANEL IZQUIERDO: HUD DE MONITOREO PERIFÉRICO
+   PANEL IZQUIERDO: CAJÓN DESLIZABLE
+   ========================================================================== */
+/* ==========================================================================
+   PANEL IZQUIERDO: CAJÓN SEPARADO FLOTANTE
    ========================================================================== */
 .panel-izquierdo { 
-    display: none; 
-    width: 290px; 
-    flex-shrink: 0; 
-    position: sticky;
-    top: 90px; /* Se acopla perfectamente si tu header mide aprox 60-70px */
-    height: fit-content;
+    width: 290px !important; 
+    display: block !important; 
+    position: fixed !important;
+    top: 90px !important; 
+    left: 0 !important;
+    height: calc(100vh - 90px) !important; 
+    background-color: #030a07 !important; 
+    z-index: 3000 !important; /* Prioridad por encima de todo */
+    padding: 20px !important;
+    margin: 0 !important; /* Evita que herede márgenes del layout */
+    box-shadow: 5px 0px 25px rgba(0, 0, 0, 0.8) !important;
+    
+    /* Forzar la animación de transición */
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    transform: translateX(0); 
 }
 
-@media (min-width: 850px) { 
-    .panel-izquierdo { 
-        display: block; 
-        animation: entradaTerminal 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-    } 
+/* Estado oculto riguroso */
+.panel-izquierdo.oculto { 
+    transform: translateX(-100%) !important; 
 }
 
+/* --- DISEÑO DE LA MANIJA / PESTAÑA --- */
+#btn-cajon {
+    position: absolute !important;
+    top: 20px !important;       
+    left: 100% !important;      
+    background-color: #030a07 !important; 
+    color: var(--color-verde-neon, #22c55e) !important; 
+    border: 1px solid rgba(34, 197, 94, 0.3) !important; 
+    border-left: none !important; 
+    padding: 15px 15px !important;
+    font-size: 18px !important;
+    cursor: pointer !important;
+    border-radius: 0 10px 10px 0 !important; 
+    box-shadow: 5px 2px 15px rgba(0, 0, 0, 0.5) !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+#btn-cajon:hover {
+    background-color: rgba(6, 20, 15, 0.9) !important;
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.4) !important;
+}
 /* --- DETALLES DE LAS TARJETAS WIDGET (CRISTAL FLOTANTE SCI-FI) --- */
 .widget-panel { 
     background: linear-gradient(135deg, rgba(6, 20, 15, 0.65) 0%, rgba(3, 8, 6, 0.45) 100%); 
@@ -1209,4 +1242,92 @@ header.scroll-active {
 .input-comentario-premium::placeholder {
     color: rgba(255, 255, 255, 0.25);
     font-size: 12px;
+}
+/* ==========================================================================
+   RESETEO RESPONSIVO GLOBAL (FLEXIBLE PARA MÓVILES)
+   ========================================================================== */
+
+/* Forzar que todos los elementos calculen su tamaño de forma inteligente */
+*, *::before, *::after {
+    box-sizing: border-box !important;
+}
+
+/* Contenedor principal: deja de ser rígido y se adapta al ancho de la pantalla */
+.wrapper-general {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 1300px !important; /* Límite para pantallas de computadora gigantes */
+    margin: 0 auto !important;
+    padding: 15px !important;
+}
+
+/* El muro central de publicaciones se vuelve elástico */
+.layout-principal {
+    flex-grow: 1 !important;
+    width: 100% !important;
+    max-width: 680px !important; /* Ancho ideal de lectura para el feed */
+    margin: 0 auto !important;
+}
+
+/* Asegurar que las cajas de posts e imágenes nunca rompan el ancho del celular */
+.crear-publicacion, #feed-social, .zona-subida-atractiva {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+#preview-container img, .evento-card img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+/* ==========================================================================
+   REGLAS ESPECÍFICAS PARA CELULARES (Pantallas menores a 768px)
+   ========================================================================== */
+@media (max-width: 768px) {
+    
+    /* 1. Ajustes del Cajón Deslizable para que no tape el 100% de la pantalla */
+    .panel-izquierdo {
+        width: 280px !important; /* Mantiene su tamaño sci-fi */
+        top: 70px !important;    /* Se ajusta si tu barra de navegación superior cambia de tamaño */
+        height: calc(100vh - 70px) !important;
+    }
+
+    /* Manija del cajón ligeramente más grande para que sea fácil de pulsar con el dedo */
+    #btn-cajon {
+        padding: 16px 14px !important;
+        font-size: 18px !important;
+    }
+
+    /* 2. El layout se vuelve vertical (el main ocupa todo el ancho disponible) */
+    .wrapper-general {
+        flex-direction: column !important;
+        padding: 8px !important;
+    }
+
+    .layout-principal {
+        padding: 0 !important;
+    }
+
+    /* 3. Ajustes de la zona de creación de publicaciones */
+    .crear-fila-principal {
+        gap: 10px !important;
+    }
+
+    .crear-fila-principal textarea {
+        font-size: 14px !important; /* Texto cómodo que no deforma la caja */
+        padding: 8px !important;
+    }
+
+    /* Apilar el selector de carrera y el botón de publicar */
+    .input-opciones {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-top: 12px !important;
+    }
+
+    .selector-carrera-post, .btn-publicar {
+        width: 100% !important; /* Ocupan todo el ancho del celular, uno abajo del otro */
+        margin: 0 !important;
+    }
 }
