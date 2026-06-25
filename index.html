@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FENIX Red Social CEA</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%23040d0a%22 stroke=%22url(%23g)%22 stroke-width=%225%22/><defs><linearGradient id=%22g%22 x1=%220%25%22 y1=%220%25%22 x2=%22100%25%22 y2=%22100%25%22><stop offset=%220%25%22 stop-color=%22%2310b981%22/><stop offset=%2250%25%22 stop-color=%22%2322c55e%22/><stop offset=%22100%25%22 stop-color=%22%23a3e635%22/></linearGradient></defs><text x=%2250%22 y=%2260%22 font-size=%2242%22 font-weight=%22900%22 fill=%22url(%23g)%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>F</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23040d0a' stroke='url(%23g)' stroke-width='5'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2310b981'/%3E%3Cstop offset='50%25' stop-color='%2322c55e'/%3E%3Cstop offset='100%25' stop-color='%23a3e635'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ctext x='50' y='60' font-size='42' font-weight='900' fill='url(%23g)' text-anchor='middle' font-family='sans-serif'%3EF%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="splash.css">
 </head>
 <body>
+    
     <div id="splash-screen">
         <div class="splash-bg-glow"></div>
         <div class="splash-content">
@@ -22,8 +24,6 @@
             </div>
         </div>
     </div>
-    <link rel="stylesheet" href="splash.css">
-
     <div id="vista-auth" class="auth-container">
         <div class="auth-card">
             <h2 id="auth-titulo" style="color:var(--color-verde-neon); margin-bottom: 0px;">FENIX</h2>
@@ -99,14 +99,13 @@
                         <button type="button" class="btn-publicar" onclick="crearPublicacionNube()">Publicar</button>
                     </div>
                 </div>
+
                 <div id="feed-social">
                     <div style="text-align:center; color:var(--texto-secundario); padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Sincronizando Muro...</div>
                 </div>
             </main>
         </div>
     </div>
-
-    <script src="splash.js"></script>
 
     <div id="modal-perfil" class="modal-perfil">
         <div class="perfil-card">
@@ -139,11 +138,14 @@
         </div>
     </div>
 
+    <script src="splash.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
+        // Añadimos 'limit' y 'serverTimestamp' para la paginación y notificaciones en tiempo real
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc, query, where, orderBy, onSnapshot, arrayUnion, arrayRemove, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
         const firebaseConfig = {
             apiKey: "AIzaSyCbnhS-F-5DPtU-aj0VxZwkyNLV6AYH-W0",
             authDomain: "fenix-89605.firebaseapp.com",
@@ -152,22 +154,29 @@
             messagingSenderId: "874410171090",
             appId: "1:874410171090:web:3cb3c7ece8d690a75beb0b"
         };
-
+        
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
-        // VARIABLES GLOBALES DECLARADAS AL OBJETO WINDOW PARA USO EN HTML
+        
+        // VARIABLES GLOBALES
         window.usuarioActualGlobal = null;
-        window.db = db; 
+        window.db = db;
         window.auth = auth;
-        window.totalUsuariosApp = 10; // Base inicial para el porcentaje de eventos
+        window.totalUsuariosApp = 10;
         let modoLogin = true;
         const avataresPrecarga = {};
         let perfilSeleccionadoNombre = null;
         let desvincularEscuchadorMuro = null;
 
-        // ELIMINADOR DEL SPLASH SCREEN
+        // HELPER GLOBAL XSS: Previene Inyección de Código
+        window.sanitizarTexto = function(texto) {
+            if (!texto) return "";
+            const div = document.createElement("div");
+            div.textContent = texto;
+            return div.innerHTML;
+        };
+
         function quitarSplash() {
             const splash = document.getElementById('splash-screen');
             if(splash) {
@@ -176,13 +185,12 @@
             }
         }
 
-        // FUNCIÓN MAESTRA DEL HISTORIAL REAL
         window.registrarActividad = async function(accionDetalle) {
             if(!window.usuarioActualGlobal) return;
             try {
                 await addDoc(collection(db, "actividades"), {
                     usuario: window.usuarioActualGlobal.nombre,
-                    accion: accionDetalle,
+                    accion: window.sanitizarTexto(accionDetalle),
                     timestamp: Date.now()
                 });
             } catch(e) {
@@ -190,31 +198,28 @@
             }
         };
 
-        // OBSERVADOR DE SESIÓN Y ASIGNACIÓN DE ROLES
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                window.usuarioActualGlobal = { 
-                    email: user.email, 
-                    nombre: user.displayName || user.email.split("@")[0].toLowerCase() 
+                window.usuarioActualGlobal = {
+                    email: user.email,
+                    nombre: user.displayName || user.email.split("@")[0].toLowerCase()
                 };
                 document.getElementById("vista-auth").style.display = "none";
                 document.getElementById("vista-app").style.display = "block";
-                
+
                 await cargarAvataresDesdeServidor();
                 await comprobarYCrearPerfilDetalles(window.usuarioActualGlobal.nombre);
                 await actualizarInterfazPerfil();
-                
-                // AUTORIZACIÓN FIREBASE PARA "ANGEL" Y DOCENTES (Habilita botones ocultos)
+
                 const rolVerificado = window.usuarioActualGlobal.nombre === "angel" || window.usuarioActualGlobal.nombre.includes("licenciado");
                 if(rolVerificado) {
                     document.getElementById("btn-subir-recurso").style.display = "block";
                     document.getElementById("btn-crear-evento").style.display = "block";
                 }
-
-                // Calcular total de usuarios reales para el porcentaje de eventos
+                
                 const snapUsuarios = await getDocs(collection(db, "perfiles_detalles"));
                 if(!snapUsuarios.empty) window.totalUsuariosApp = snapUsuarios.size;
-                
+
                 window.desplegarFeed();
                 window.escucharNotificaciones();
                 window.cargarRecursosYEventos();
@@ -250,7 +255,7 @@
             const email = document.getElementById("auth-correo").value.trim();
             const clave = document.getElementById("auth-clave").value;
             if(!email || !clave) return alert("Por favor rellena todos los campos.");
-
+            
             try {
                 if (modoLogin) {
                     await signInWithEmailAndPassword(auth, email, clave);
@@ -258,15 +263,15 @@
                     if(!userText) return alert("Escribe tu apodo único.");
                     if(userText.includes(" ")) return alert("El nombre no debe contener espacios.");
                     await createUserWithEmailAndPassword(auth, email, clave);
-                    await setDoc(doc(db, "avatares", userText), { usuario: userText, foto: "https://www.w3schools.com/howto/img_avatar.png" });
+                    await setDoc(doc(db, "avatares", userText), { usuario: window.sanitizarTexto(userText), foto: "https://www.w3schools.com/howto/img_avatar.png" });
                     alert("¡Cuenta creada exitosamente!");
                     location.reload();
                 }
             } catch (err) { alert("Error de autenticación: " + err.message); }
         };
 
-        window.logout = function() { 
-            signOut(auth).then(() => location.reload()); 
+        window.logout = function() {
+            signOut(auth).then(() => location.reload());
         };
 
         window.conmutarSidebar = function(abrir) {
@@ -275,7 +280,6 @@
             else sidebar.classList.remove("abierto");
         };
 
-        // COMPROBACIÓN Y CREACIÓN DE FICHA DE PERFIL EXPANDIDA
         async function comprobarYCrearPerfilDetalles(nombreUsuario) {
             const docRef = doc(db, "perfiles_detalles", nombreUsuario);
             const docSnap = await getDoc(docRef);
@@ -288,80 +292,69 @@
                     descripcion: "Sin descripción corta todavía.",
                     cumpleanos: "Sin registrar",
                     contacto: window.usuarioActualGlobal.email,
-                    esDocente: (nombreUsuario === "angel" || nombreUsuario.includes("licenciado")) // Angel y licenciados destacan automáticamente
+                    esDocente: (nombreUsuario === "angel" || nombreUsuario.includes("licenciado"))
                 });
             }
         }
-// ACTUALIZACIÓN DE LA INTERFAZ DEL PERFIL ACTUAL
+
         async function actualizarInterfazPerfil() {
             if (!window.usuarioActualGlobal) return;
             const userFoto = avataresPrecarga[window.usuarioActualGlobal.nombre] || "https://www.w3schools.com/howto/img_avatar.png";
             document.getElementById("trigger-avatar").src = userFoto;
             document.getElementById("crear-avatar-actual").src = userFoto;
-
+            
             const docSnap = await getDoc(doc(db, "perfiles_detalles", window.usuarioActualGlobal.nombre));
             let carreraTxt = "General";
             if (docSnap.exists()) {
                 carreraTxt = docSnap.data().carrera || "General";
             }
-
-            const badgeDocente = (window.usuarioActualGlobal.nombre === "angel" || window.usuarioActualGlobal.nombre.includes("licenciado")) 
+            
+            const badgeDocente = (window.usuarioActualGlobal.nombre === "angel" || window.usuarioActualGlobal.nombre.includes("licenciado"))
                 ? `<span class="badge-autorizado" style="display:block; color:var(--color-verde-neon); font-size:11px; margin-top:5px; font-weight:bold;"><i class="fa-solid fa-circle-check"></i> Creador / Docente</span>`
                 : "";
-
+                
             document.getElementById("box-perfil-data").innerHTML = `
                 <img src="${userFoto}" class="avatar-sidebar-img" onclick="document.getElementById('input-cambiar-avatar').click()" style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px fill var(--color-verde-neon); cursor:pointer;" title="Cambiar Foto">
                 <input type="file" id="input-cambiar-avatar" accept="image/*" style="display:none;" onchange="subirAvatarDirecto(this)">
-                <h4 style="color:white; margin-top:10px; text-transform:capitalize;">${window.usuarioActualGlobal.nombre}</h4>
-                <p style="color:var(--texto-secundario); font-size:12px;">${carreraTxt}</p>
+                <h4 style="color:white; margin-top:10px; text-transform:capitalize;">${window.sanitizarTexto(window.usuarioActualGlobal.nombre)}</h4>
+                <p style="color:var(--texto-secundario); font-size:12px;">${window.sanitizarTexto(carreraTxt)}</p>
                 ${badgeDocente}
             `;
         }
 
-        // MOTOR DE COMPRESIÓN DE IMÁGENES A KILOBYTES (Canvas HTML5)
         function comprimirImagen(base64Str, callback) {
             const img = new Image();
             img.src = base64Str;
             img.onload = function() {
                 const canvas = document.createElement("canvas");
                 const ctx = canvas.getContext("2d");
-                
                 let anchoMaximo = 900;
                 let altoMaximo = 900;
                 let ancho = img.width;
                 let alto = img.height;
-
+                
                 if (ancho > alto) {
-                    if (ancho > anchoMaximo) {
-                        alto *= anchoMaximo / ancho;
-                        ancho = anchoMaximo;
-                    }
+                    if (ancho > anchoMaximo) { alto *= anchoMaximo / ancho; ancho = anchoMaximo; }
                 } else {
-                    if (alto > altoMaximo) {
-                        ancho *= altoMaximo / alto;
-                        alto = altoMaximo;
-                    }
+                    if (alto > altoMaximo) { ancho *= altoMaximo / alto; alto = altoMaximo; }
                 }
-
+                
                 canvas.width = ancho;
                 canvas.height = alto;
                 ctx.drawImage(img, 0, 0, ancho, alto);
-                
                 const resultadoBase64 = canvas.toDataURL("image/jpeg", 0.6);
                 callback(resultadoBase64);
             };
         }
 
-        // CONTROL DE PREVISUALIZACIÓN PROPORCIONAL
         window.actualizarNombreArchivo = function(input) {
             const file = input.files[0];
             const textZone = document.getElementById("texto-dropzone");
             const previewContainer = document.getElementById("preview-container");
             const previewImage = document.getElementById("preview-image");
-
+            
             if(file) {
-                textZone.innerHTML = `<i class="fa-solid fa-file-image"></i> ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
-                
+                textZone.innerHTML = `<i class="fa-solid fa-file-image"></i> ${window.sanitizarTexto(file.name)} (${(file.size/1024).toFixed(1)} KB)`;
                 if (file.type.startsWith("image/")) {
                     const reader = new FileReader();
                     reader.onload = function(e) {
@@ -386,9 +379,9 @@
             const lector = new FileReader();
             lector.onload = function(e) {
                 comprimirImagen(e.target.result, async function(imgComp) {
-                    await setDoc(doc(db, "avatares", window.usuarioActualGlobal.nombre), { 
-                        usuario: window.usuarioActualGlobal.nombre, 
-                        foto: imgComp 
+                    await setDoc(doc(db, "avatares", window.usuarioActualGlobal.nombre), {
+                        usuario: window.usuarioActualGlobal.nombre,
+                        foto: imgComp
                     }, { merge: true });
                     avataresPrecarga[window.usuarioActualGlobal.nombre] = imgComp;
                     await actualizarInterfazPerfil();
@@ -400,66 +393,58 @@
             lector.readAsDataURL(archivo);
         };
 
-        // CREACIÓN DE PUBLICACIONES EN LA NUBE
         window.crearPublicacionNube = async function() {
             const texto = document.getElementById("post-texto").value.trim();
             const carrera = document.getElementById("post-carrera").value;
             const previewContainer = document.getElementById("preview-container");
-            
-            // Verificación para evitar subir el link local de la página si no hay imagen
             const previewImgSrc = (previewContainer.style.display !== "none") ? document.getElementById("preview-image").src : "";
-
+            
             if(!texto && !previewImgSrc) return alert("No puedes publicar algo vacío.");
-
+            
             try {
                 await addDoc(collection(db, "posts"), {
                     userNombre: window.usuarioActualGlobal.nombre,
-                    texto: texto,
-                    media: previewImgSrc || "", 
+                    texto: texto, 
+                    media: previewImgSrc || "",
                     esVideo: false,
                     carrera: carrera,
                     timestamp: Date.now(),
                     likes: [],
                     comentarios: []
                 });
-
+                
                 document.getElementById("post-texto").value = "";
                 document.getElementById("post-archivo").value = "";
                 document.getElementById("preview-container").style.display = "none";
                 document.getElementById("preview-image").src = "";
                 document.getElementById("texto-dropzone").innerHTML = `<i class="fa-regular fa-image" style="color: var(--color-verde-neon);"></i> Subir un archivo`;
-                
                 window.registrarActividad("Publicó un nuevo mensaje en el muro");
             } catch(e) {
                 alert("Error al guardar publicación: " + e.message);
             }
         };
 
-        // FORMATEADOR DE FECHAS: EXCLUSIVAMENTE DÍA, FECHA Y HORA (SIN SEGUNDOS, SIN AÑO)
         function formatearFechaLimpia(timestamp) {
             if(!timestamp) return "Recientemente";
             const d = new Date(timestamp);
             const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
             const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-            
             const diaNombre = diasSemana[d.getDay()];
             const diaNum = d.getDate();
             const mesNombre = meses[d.getMonth()];
-            
             let horas = d.getHours();
             let minutos = d.getMinutes();
-            
             let minutosStr = minutos < 10 ? "0" + minutos : minutos;
             let horasStr = horas < 10 ? "0" + horas : horas;
-
             return `${diaNombre} ${diaNum} de ${mesNombre}, a las ${horasStr}:${minutosStr}`;
         }
 
-        // MOTOR REINVENTADO DEL FEED SOCIAL: ORDEN INVERSO DINÁMICO (PROFESIONAL)
+        // MOTOR REINVENTADO: PAGINACIÓN PREPARADA Y XSS SANITIZACIÓN 
         window.desplegarFeed = function() {
             if(desvincularEscuchadorMuro) desvincularEscuchadorMuro();
-
-            const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+            
+            // Limit 15 para estabilidad en producción
+            const q = query(collection(db, "posts"), orderBy("timestamp", "desc"), limit(15));
             
             desvincularEscuchadorMuro = onSnapshot(q, (snapshot) => {
                 const feedContainer = document.getElementById("feed-social");
@@ -467,27 +452,25 @@
                     feedContainer.innerHTML = `<div style="text-align:center; color:var(--texto-secundario); padding:30px;">El muro está vacío. ¡Sé el primero en compartir algo!</div>`;
                     return;
                 }
-
                 feedContainer.innerHTML = "";
+                
                 snapshot.forEach((docObj) => {
                     const post = docObj.data();
                     const postId = docObj.id;
-                    const fotoUser = avataresPrecarga[post.userNombre.toLowerCase()] || "https://www.w3schools.com/howto/img_avatar.png";
-                    
-                    const esDestacado = (post.userNombre === "angel" || post.userNombre.includes("licenciado"));
-                    const insigniaEstilo = esDestacado 
-                        ? `<span style="background: rgba(16,185,129,0.2); color: var(--color-verde-neon); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;"><i class="fa-solid fa-circle-check"></i> DESTACADO</span>` 
-                        : "";
-                    
-                    const estiloCardFenix = esDestacado ? "border: 1px solid rgba(16,185,129,0.3); background: linear-gradient(145deg, #091410, #040d0a);" : "";
+                    const usuarioLimpio = window.sanitizarTexto(post.userNombre);
+                    const fotoUser = avataresPrecarga[usuarioLimpio.toLowerCase()] || "https://www.w3schools.com/howto/img_avatar.png";
 
+                    const esDestacado = (usuarioLimpio === "angel" || usuarioLimpio.includes("licenciado"));
+                    const insigniaEstilo = esDestacado
+                        ? `<span style="background: rgba(16,185,129,0.2); color: var(--color-verde-neon); font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px;"><i class="fa-solid fa-circle-check"></i> DESTACADO</span>`
+                        : "";
+
+                    const estiloCardFenix = esDestacado ? "border: 1px solid rgba(16,185,129,0.3); background: linear-gradient(145deg, #091410, #040d0a);" : "";
                     const tieneMiLike = post.likes && post.likes.includes(window.usuarioActualGlobal.nombre);
                     const iconoLike = tieneMiLike ? "fa-solid fa-heart style='color:#ef4444;'" : "fa-regular fa-heart";
-
-                    // Asegura que las imágenes antiguas y nuevas funcionen
+                    
                     let elementoMedia = "";
-                    const urlMedia = post.media || post.archivo; 
-
+                    const urlMedia = post.media || post.archivo;
                     if (urlMedia) {
                         elementoMedia = `
                             <div style="width:100%; max-height:550px; background:#000; border-radius:10px; overflow:hidden; margin-top:12px; display:flex; justify-content:center; align-items:center;">
@@ -495,24 +478,26 @@
                             </div>
                         `;
                     }
-
+                    
                     let bloqueComentariosHTML = "";
                     if (post.comentarios && post.comentarios.length > 0) {
-                        post.comentarios.forEach((com, idx) => {
-                            const fotoComentador = avataresPrecarga[com.usuario.toLowerCase()] || "https://www.w3schools.com/howto/img_avatar.png";
+                        post.comentarios.forEach((com) => {
+                            const comUsuarioLimpio = window.sanitizarTexto(com.usuario);
+                            const comTextoLimpio = window.sanitizarTexto(com.texto);
+                            const fotoComentador = avataresPrecarga[comUsuarioLimpio.toLowerCase()] || "https://www.w3schools.com/howto/img_avatar.png";
                             const esMiComentario = com.usuario === window.usuarioActualGlobal.nombre;
                             const esMiPost = post.userNombre === window.usuarioActualGlobal.nombre;
-                            
-                            const botonBorrarComentario = (esMiComentario || esMiPost || window.usuarioActualGlobal.nombre === "angel")
-                                ? `<span onclick="eliminarComentarioReal('${postId}', ${idx})" style="color:#ef4444; font-size:11px; cursor:pointer; margin-left:auto;"><i class="fa-solid fa-trash"></i></span>`
-                                : "";
 
+                            const botonBorrarComentario = (esMiComentario || esMiPost || window.usuarioActualGlobal.nombre === "angel")
+                                ? `<span onclick="eliminarComentarioReal('${postId}', ${com.timestamp}, '${comUsuarioLimpio}')" style="color:#ef4444; font-size:11px; cursor:pointer; margin-left:auto;"><i class="fa-solid fa-trash"></i></span>`
+                                : "";
+                                
                             bloqueComentariosHTML += `
                                 <div style="display:flex; gap:8px; background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; margin-bottom:6px; align-items:center;">
                                     <img src="${fotoComentador}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
                                     <div style="flex:1;">
-                                        <strong style="color:white; font-size:12px; text-transform:capitalize; cursor:pointer;" onclick="abrirPerfilUsuario('${com.usuario}')">${com.usuario}</strong>
-                                        <p style="color:var(--texto-principal); font-size:12px; margin:2px 0;">${com.texto}</p>
+                                        <strong style="color:white; font-size:12px; text-transform:capitalize; cursor:pointer;" onclick="abrirPerfilUsuario('${comUsuarioLimpio}')">${comUsuarioLimpio}</strong>
+                                        <p style="color:var(--texto-principal); font-size:12px; margin:2px 0;">${comTextoLimpio}</p>
                                     </div>
                                     ${botonBorrarComentario}
                                 </div>
@@ -520,120 +505,221 @@
                         });
                     }
 
+ // 1. Botón de borrar transformado a estilo Cyberpunk Pro (Flotante)
                     let botonBorrarPostCompleto = "";
                     if(post.userNombre === window.usuarioActualGlobal.nombre || window.usuarioActualGlobal.nombre === "angel") {
                         botonBorrarPostCompleto = `
-                            <button type="button" onclick="eliminarPublicacionReal('${postId}')" style="background:transparent; border:none; color:var(--texto-secundario); cursor:pointer;" title="Eliminar Publicación">
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
+                            <button type="button" class="btn-eliminar-post-premium" onclick="window.eliminarPublicacionReal('${postId}')" title="Eliminar Publicación">
+                                <i class="fa-solid fa-trash-can"></i>
                             </button>
                         `;
                     }
-
-// --- CONTROL DE CONTADORES Y VARIABLES DE TU CARD ---
+                    
                     const numLikes = post.likes ? post.likes.length : 0;
                     const numComentarios = post.comentarios ? post.comentarios.length : 0;
-                    const etiquetaCarrera = post.carrera || post.carreraFiltro || "General";
-
-                    // --- CREACIÓN DE LA TARJETA CON TU ESTILO FENIX ---
+                    const etiquetaCarrera = window.sanitizarTexto(post.carrera || post.carreraFiltro || "General");
+                    const textoPrincipalLimpio = window.sanitizarTexto(post.texto);
+                    
                     const card = document.createElement("div");
                     card.className = "post-card";
-                    card.style = estiloCardFenix; // Mantiene el look & feel Cyberpunk
+                    // IMPORTANTE: Aseguramos que la tarjeta tenga position: relative en línea por si no carga el CSS
+                    card.style = estiloCardFenix + "; position: relative;"; 
                     card.id = `post-card-${postId}`;
-                    
+
                     card.innerHTML = `
+                        ${botonBorrarPostCompleto}
+
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div style="display:flex; align-items:center; gap:10px;">
-                                <img src="${fotoUser}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; cursor:pointer;" onclick="abrirPerfilUsuario('${post.userNombre}')">
+                                <img src="${fotoUser}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; cursor:pointer;" onclick="abrirPerfilUsuario('${usuarioLimpio}')">
                                 <div>
-                                    <h4 style="color:white; text-transform:capitalize; display:inline-block; cursor:pointer;" onclick="abrirPerfilUsuario('${post.userNombre}')">${post.userNombre}</h4>
+                                    <h4 style="color:white; text-transform:capitalize; display:inline-block; cursor:pointer;" onclick="abrirPerfilUsuario('${usuarioLimpio}')">${usuarioLimpio}</h4>
                                     ${insigniaEstilo}
                                     <p style="color:var(--texto-secundario); font-size:11px; margin-top:2px;">
-                                        ${formatearFechaLimpia(post.timestamp)} • 
+                                        ${formatearFechaLimpia(post.timestamp)} •
                                         <span style="text-transform:uppercase; color:var(--color-verde-neon); font-size:9px;">${etiquetaCarrera}</span>
                                     </p>
                                 </div>
                             </div>
-                            ${botonBorrarPostCompleto}
                         </div>
-                        
-                        <p style="color:var(--texto-principal); font-size:14px; margin-top:12px; white-space:pre-wrap; line-height:1.4;">${post.texto || ''}</p>
+
+                        <p style="color:var(--texto-principal); font-size:14px; margin-top:12px; white-space:pre-wrap; line-height:1.4;">${textoPrincipalLimpio}</p>
                         ${elementoMedia}
-                        
-                        <div style="display:flex; border-top:1px solid rgba(255,255,255,0.05); margin-top:15px; padding-top:10px; gap:20px;">
-                            <button type="button" id="btn-like-${postId}" onclick="interactuarLike('${postId}')" style="background:transparent; border:none; color:white; cursor:pointer; font-size:13px;">
-                                <i class="${iconoLike}"></i> Me gusta (${numLikes})
+
+                        <div class="cyber-action-bar">
+                            <button type="button" id="btn-like-${postId}" class="btn-cyber-action btn-like-pro ${iconoLike.includes('fas') ? 'active' : ''}" 
+                                    onclick="window.interactuarLike('${postId}')">
+                                <i class="${iconoLike}"></i>
+                                <span>Reaccionar</span>
+                                <span class="action-counter">${numLikes}</span>
                             </button>
-                            <button type="button" id="btn-comment-${postId}" style="background:transparent; border:none; color:white; cursor:pointer; font-size:13px;" onclick="document.getElementById('input-com-${postId}').focus()">
-                                <i class="fa-regular fa-comment"></i> Comentar (${numComentarios})
+
+                            <button type="button" id="btn-comment-${postId}" class="btn-cyber-action btn-comment-pro" 
+                                    onclick="document.getElementById('input-com-${postId}').focus()">
+                                <i class="fa-regular fa-comment"></i>
+                                <span>Comentar</span>
+                                <span class="action-counter">${numComentarios}</span>
                             </button>
                         </div>
                         
-                        <div style="margin-top:12px; background:rgba(0,0,0,0.15); padding:10px; border-radius:8px;">
-                            <div id="lista-com-${postId}" style="max-height:200px; overflow-y:auto; margin-bottom:8px;">
+                    <div class="post-comentarios-zona">
+                            <div id="lista-com-${postId}" class="comentarios-lista-interna">
                                 ${bloqueComentariosHTML}
                             </div>
-                            <div style="display:flex; gap:6px;">
-                                <input type="text" id="input-com-${postId}" placeholder="Escribe un comentario y presiona Enter..." onkeydown="detectarIntroComentario(event, '${postId}', '${post.userNombre}')" style="flex:1; padding:8px; border-radius:6px; background:#111; border:1px solid #222; color:white; font-size:12px;">
-                                <button type="button" onclick="agregarComentarioReal('${postId}')" style="background:var(--color-verde-neon); border:none; color:black; font-weight:bold; padding:0 12px; border-radius:6px; cursor:pointer; font-size:12px;">Enviar</button>
+                            
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input type="text" id="input-com-${postId}" class="input-comentario-premium" 
+                                       placeholder="> Escribe un comentario..." 
+                                       onkeydown="detectarIntroComentario(event, '${postId}')">
+                                       
+                                <button type="button" onclick="window.agregarComentarioReal('${postId}')" 
+                                        style="background:var(--color-verde-neon); border:none; color:#000; font-weight:bold; height:36px; padding:0 16px; border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.2s; display:flex; align-items:center; justify-content:center;"
+                                        onmouseover="this.style.boxShadow='0 0 10px var(--color-verde-neon)', this.style.transform='scale(1.03)'"
+                                        onmouseout="this.style.boxShadow='none', this.style.transform='scale(1)'">
+                                    Enviar
+                                </button>
                             </div>
                         </div>
+    
+
                     `;
-                    
-                    // CORRECCIÓN: 'prepend' empuja el post arriba del todo (estilo feed comercial)
-                    feedContainer.prepend(card); 
+
+                    // FIX: Para query Descendente, appendChild asegura que los post visualmente se acomoden en orden cronológico correcto.
+                    feedContainer.appendChild(card);
                 });
             });
         };
-        // LÓGICA DE ME GUSTA
-window.interactuarLike = async function(postId) {
-    const postRef = doc(db, "posts", postId);
-    const postSnap = await getDoc(postRef);
-    if (!postSnap.exists()) return;
 
-    const postData = postSnap.data();
-    const autorPost = postData.userNombre; // El dueño del post (tu hermano)
-    let likesActuales = postData.likes || [];
-    const miNombre = usuarioActualGlobal.nombre; // Tú
+        // 🚀 REACCIONES ULTRA-RÁPIDAS (0 MILISEGUNDOS REALES)
+        window.interactuarLike = function(postId) {
+            // --- PASO 1: ACCIÓN VISUAL INMEDIATA EN EL DOM (0ms) ---
+            const botonLike = document.getElementById(`btn-like-${postId}`);
+            if (!botonLike) return;
 
-    if (likesActuales.includes(miNombre)) {
-        // Si ya tenía like, lo quitamos
-        await updateDoc(postRef, { likes: arrayRemove(miNombre) });
-    } else {
-        // Si no tenía, sumamos el like de forma segura
-        await updateDoc(postRef, { likes: arrayUnion(miNombre) });
+            const contadorElemento = botonLike.querySelector(".action-counter");
+            const icono = botonLike.querySelector("i");
+            if (!contadorElemento) return;
 
-        // ¡AQUÍ SE INVIERTE LA ALERTA! Solo notificamos si el post NO es mío
-        if (autorPost !== miNombre) {
-            await registrarAccionNotificable(autorPost, `${miNombre} le dio Me Gusta a tu publicación`);
-        }
-    }
-};
-        // SISTEMA DE COMENTARIOS REALES
-        window.agregarComentarioReal = async function(postId) {
-            const inputBox = document.getElementById(`input-com-${postId}`);
-            const texto = inputBox.value.trim();
-            if (!texto) return;
+            let numLikesActual = parseInt(contadorElemento.innerText) || 0;
+            const estaActivo = botonLike.classList.contains("active");
 
-            const postRef = doc(db, "posts", postId);
-            await updateDoc(postRef, {
-                comentarios: arrayUnion({
-                    usuario: window.usuarioActualGlobal.nombre,
-                    texto: texto,
-                    timestamp: Date.now()
-                })
-            });
-            inputBox.value = "";
-            window.registrarActividad("Agregó un comentario en una publicación");
+            // Modificación visual instantánea en la interfaz
+            if (estaActivo) {
+                botonLike.classList.remove("active");
+                if (icono) icono.className = "fa-regular fa-heart"; // Corazón vacío al milisegundo
+                contadorElemento.innerText = Math.max(0, numLikesActual - 1);
+            } else {
+                botonLike.classList.add("active");
+                if (icono) icono.className = "fa-solid fa-heart"; // Corazón relleno al milisegundo
+                contadorElemento.innerText = numLikesActual + 1;
+            }
+
+            // --- PASO 2: SE ENVÍA A FIRESTORE EN SEGUNDO PLANO SIN TRABAR LA INTERFAZ ---
+            setTimeout(async () => {
+                try {
+                    const postRef = doc(db, "posts", postId);
+                    const postSnap = await getDoc(postRef);
+                    if (!postSnap.exists()) return;
+                    
+                    const postData = postSnap.data();
+                    const autorPost = postData.userNombre; 
+                    const miNombre = window.usuarioActualGlobal.nombre; 
+                    
+                    if (estaActivo) {
+                        await updateDoc(postRef, { likes: arrayRemove(miNombre) });
+                    } else {
+                        await updateDoc(postRef, { likes: arrayUnion(miNombre) });
+                        
+                        // Mantenemos intacto tu parche original para el BUG del Autolike
+                        if (autorPost !== miNombre) {
+                            await registrarAccionNotificable(autorPost, `${miNombre} le dio Me Gusta a tu publicación`);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Fallo de red de fondo en reacción. Revertiendo interfaz...", error);
+                    
+                    // Si el internet colapsa de verdad, devolvemos el botón a su estado real
+                    if (estaActivo) {
+                        botonLike.classList.add("active");
+                        if (icono) icono.className = "fa-solid fa-heart";
+                        contadorElemento.innerText = numLikesActual;
+                    } else {
+                        botonLike.classList.remove("active");
+                        if (icono) icono.className = "fa-regular fa-heart";
+                        contadorElemento.innerText = numLikesActual;
+                    }
+                }
+            }, 0); // Ejecución asíncrona paralela instantánea
         };
 
-        window.eliminarComentarioReal = async function(postId, index) {
+        // UNIFICACIÓN EVENTO ENTER
+        window.detectarIntroComentario = function(event, postId) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                window.agregarComentarioReal(postId);
+            }
+        };
+
+window.agregarComentarioReal = async function(postId) {
+    const inputBox = document.getElementById(`input-com-${postId}`);
+    const texto = inputBox.value.trim();
+    if (!texto) return;
+
+    const postRef = doc(db, "posts", postId);
+    const miNombre = window.usuarioActualGlobal.nombre;
+
+    try {
+        // 1. Obtener los datos del post actual para saber quién es el autor
+        const postSnap = await getDoc(postRef);
+        let autorPost = "";
+        
+        if (postSnap.exists()) {
+            autorPost = postSnap.data().usuario; // Guardamos el nombre del dueño del post
+        }
+
+        // 2. Guardar el comentario de forma atómica en el post
+        await updateDoc(postRef, {
+            comentarios: arrayUnion({
+                usuario: miNombre,
+                texto: texto,
+                timestamp: Date.now()
+            })
+        });
+
+        // 3. SISTEMA DE NOTIFICACIONES: Enviar alerta si el comentario es de OTRA persona
+        if (autorPost && autorPost !== miNombre) {
+            await addDoc(collection(db, "notificaciones"), {
+                usuarioDestino: autorPost,       // Quién recibe la alerta (dueño del post)
+                usuarioOrigen: miNombre,         // Quién escribe el comentario
+                tipo: "comentario",              // Tipo de interacción
+                textoId: postId,                 // ID del post para poder redirigir
+                detalle: "comentó tu publicación", 
+                leido: false,                    // Estado inicial para el punto neón
+                timestamp: serverTimestamp()     // Hora oficial del servidor de Firebase
+            });
+        }
+
+        // Limpiar el input y registrar la actividad local
+        inputBox.value = "";
+        window.registrarActividad("Agregó un comentario en una publicación");
+
+    } catch (error) {
+        console.error("Error al agregar comentario o notificación: ", error);
+    }
+};
+
+        // BORRADO ATÓMICO SEGURO (Evita desfase de Split)
+        window.eliminarComentarioReal = async function(postId, timestamp, usuario) {
             if(!confirm("¿Seguro que deseas eliminar este comentario?")) return;
             const postRef = doc(db, "posts", postId);
             const snap = await getDoc(postRef);
             if(snap.exists()) {
                 const comentarios = snap.data().comentarios || [];
-                comentarios.splice(index, 1);
-                await updateDoc(postRef, { comentarios: comentarios });
+                // Se busca el objeto atómico exacto 
+                const comentarioExacto = comentarios.find(c => c.timestamp === timestamp && c.usuario === usuario);
+                if (comentarioExacto) {
+                    await updateDoc(postRef, { comentarios: arrayRemove(comentarioExacto) });
+                }
             }
         };
 
@@ -644,82 +730,142 @@ window.interactuarLike = async function(postId) {
             }
         };
 
-        // PERFIL PÚBLICO INTEGRAL DE USUARIOS
-        window.abrirPerfilUsuario = async function(nombreUsuario) {
+// 🚀 APERTURA DE PERFIL INSTANTÁNEA (0 MILISEGUNDOS)
+        window.abrirPerfilUsuario = function(nombreUsuario) {
             const userRef = nombreUsuario.toLowerCase();
             window.perfilSeleccionadoNombre = userRef;
             window.conmutarSidebar(false);
-
+            
+            // --- PASO 1: ACCIÓN VISUAL INMEDIATA (SIN ESPERAR A FIRESTORE) ---
+            document.getElementById("modal-perfil").style.display = "flex";
+            
+            // Inyectamos datos locales que ya existen al instante
             const fotoUser = avataresPrecarga[userRef] || "https://www.w3schools.com/howto/img_avatar.png";
             document.getElementById("perfil-modal-foto").src = fotoUser;
-            document.getElementById("perfil-modal-nombre").innerText = userRef;
-
+            document.getElementById("perfil-modal-nombre").innerText = window.sanitizarTexto(userRef);
+            
             const esDestacado = (userRef === "angel" || userRef.includes("licenciado"));
             document.getElementById("perfil-insignia").style.display = esDestacado ? "block" : "none";
-
-            const detailsSnap = await getDoc(doc(db, "perfiles_detalles", userRef));
-            const det = detailsSnap.exists() ? detailsSnap.data() : {};
-
-            document.getElementById("perfil-modal-carrera").innerText = det.carrera || "General";
-            document.getElementById("perfil-modal-cumple").innerText = det.cumpleanos || "Sin registrar";
-            document.getElementById("perfil-modal-contacto").innerText = det.contacto || "Sin registrar";
-            document.getElementById("perfil-modal-bio").innerText = det.descripcion || "Sin descripción disponible.";
-
-            const qPosts = query(collection(db, "posts"), where("userNombre", "==", userRef));
-            const snapPosts = await getDocs(qPosts);
-            document.getElementById("stat-publicaciones").innerText = snapPosts.size;
-
-            const folSnap = await getDoc(doc(db, "seguimiento", userRef));
-            const folData = folSnap.exists() ? folSnap.data() : { seguidores: [], seguidos: [] };
             
-            const listaSeguidores = folData.seguidores || [];
-            const listaSeguidos = folData.seguidos || [];
+            // Colocamos marcadores veloces de carga cyberpunk
+            document.getElementById("stat-publicaciones").innerText = "...";
+            document.getElementById("stat-seguidores").innerText = "...";
+            document.getElementById("stat-seguidos").innerText = "...";
+            document.getElementById("perfil-modal-bio").innerText = "Cargando registros de red...";
 
-            document.getElementById("stat-seguidores").innerText = listaSeguidores.length;
-            document.getElementById("stat-seguidos").innerText = listaSeguidos.length;
+            // --- PASO 2: SE DELEGA FIRESTORE A UN HILO SECUNDARIO REACCIÓN EN PARALELO ---
+            setTimeout(async () => {
+                try {
+                    const [detailsSnap, snapPosts, folSnap] = await Promise.all([
+                        getDoc(doc(db, "perfiles_detalles", userRef)),
+                        getDocs(query(collection(db, "posts"), where("userNombre", "==", userRef))),
+                        getDoc(doc(db, "seguimiento", userRef))
+                    ]);
 
-            const btnSeguir = document.getElementById("btn-accion-seguir");
-            if (userRef === window.usuarioActualGlobal.nombre) {
-                btnSeguir.style.display = "none";
-            } else {
-                btnSeguir.style.display = "block";
-                btnSeguir.innerText = listaSeguidores.includes(window.usuarioActualGlobal.nombre) ? "Dejar de Seguir" : "Seguir";
-            }
+                    const det = detailsSnap.exists() ? detailsSnap.data() : {};
+                    document.getElementById("perfil-modal-carrera").innerText = window.sanitizarTexto(det.carrera || "General");
+                    document.getElementById("perfil-modal-cumple").innerText = window.sanitizarTexto(det.cumpleanos || "Sin registrar");
+                    document.getElementById("perfil-modal-contacto").innerText = window.sanitizarTexto(det.contacto || "Sin registrar");
+                    document.getElementById("perfil-modal-bio").innerText = window.sanitizarTexto(det.descripcion || "Sin descripción disponible.");
+                    
+                    document.getElementById("stat-publicaciones").innerText = snapPosts.size;
+                    
+                    const folData = folSnap.exists() ? folSnap.data() : { seguidores: [], seguidos: [] };
+                    const listaSeguidores = folData.seguidores || [];
+                    document.getElementById("stat-seguidores").innerText = listaSeguidores.length;
+                    document.getElementById("stat-seguidos").innerText = (folData.seguidos || []).length;
+                    
+                    const btnSeguir = document.getElementById("btn-accion-seguir");
+                    if (userRef === window.usuarioActualGlobal.nombre) {
+                        btnSeguir.style.display = "none";
+                    } else {
+                        btnSeguir.style.display = "block";
+                        if (listaSeguidores.includes(window.usuarioActualGlobal.nombre)) {
+                            btnSeguir.innerText = "DEJAR DE SEGUIR";
+                            btnSeguir.classList.add("siguiendo");
+                        } else {
+                            btnSeguir.innerText = "SEGUIR";
+                            btnSeguir.classList.remove("siguiendo");
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error asíncrono de fondo:", error);
+                }
+            }, 0); // Ejecución asíncrona inmediata que no traba la animación del modal
+        };
 
-            document.getElementById("modal-perfil").style.display = "flex";
+        window.abrirMiPerfil = function() {
+            window.abrirPerfilUsuario(window.usuarioActualGlobal.nombre);
         };
 
         window.cerrarModalPerfil = function() {
             document.getElementById("modal-perfil").style.display = "none";
         };
 
-        window.conmutarSeguimiento = async function() {
+        // 🚀 SEGUIMIENTO/UNFOLLOW A 0 MILISEGUNDOS REALES
+        window.conmutarSeguimiento = function() {
             const objetivo = window.perfilSeleccionadoNombre;
             if(!objetivo) return;
 
-            const miRef = doc(db, "seguimiento", window.usuarioActualGlobal.nombre);
-            const objRef = doc(db, "seguimiento", objetivo);
+            const btnSeguir = document.getElementById("btn-accion-seguir");
+            const statSeguidores = document.getElementById("stat-seguidores");
+            if (!btnSeguir || !statSeguidores) return;
 
-            const snapObj = await getDoc(objRef);
-            const seguidoresActuales = snapObj.exists() ? (snapObj.data().seguidores || []) : [];
+            // --- PASO 1: MUTACIÓN VISUAL INMEDIATA EN EL DOM ---
+            const yaLoSigo = btnSeguir.classList.contains("siguiendo");
+            let followersCount = parseInt(statSeguidores.innerText) || 0;
 
-            if (seguidoresActuales.includes(window.usuarioActualGlobal.nombre)) {
-                await updateDoc(objRef, { seguidores: arrayRemove(window.usuarioActualGlobal.nombre) });
-                await updateDoc(miRef, { seguidos: arrayRemove(objetivo) });
+            if (yaLoSigo) {
+                btnSeguir.classList.remove("siguiendo");
+                btnSeguir.innerText = "SEGUIR";
+                statSeguidores.innerText = Math.max(0, followersCount - 1);
             } else {
-                await setDoc(objRef, { seguidores: arrayUnion(window.usuarioActualGlobal.nombre) }, { merge: true });
-                await setDoc(miRef, { seguidos: arrayUnion(objetivo) }, { merge: true });
-                window.registrarActividad(`Comenzó a seguir a ${objetivo}`);
+                btnSeguir.classList.add("siguiendo");
+                btnSeguir.innerText = "DEJAR DE SEGUIR";
+                statSeguidores.innerText = followersCount + 1;
             }
-            window.abrirPerfilUsuario(objetivo);
-        };
 
-        // CONFIGURACIÓN DE PERFIL CON CONTROL ESTRICTO DE TEXTO
+            // --- PASO 2: SE ENVÍA A INTERNET DE FONDO SIN VOLVER A REFRESCAR LA PANTALLA ---
+            setTimeout(async () => {
+                try {
+                    const miRef = doc(db, "seguimiento", window.usuarioActualGlobal.nombre);
+                    const objRef = doc(db, "seguimiento", objetivo);
+                    
+                    const [snapObj, snapMi] = await Promise.all([getDoc(objRef), getDoc(miRef)]);
+                    if (!snapObj.exists()) await setDoc(objRef, { seguidores: [], seguidos: [] });
+                    if (!snapMi.exists()) await setDoc(miRef, { seguidores: [], seguidos: [] });
+
+                    if (yaLoSigo) {
+                        await Promise.all([
+                            updateDoc(objRef, { seguidores: arrayRemove(window.usuarioActualGlobal.nombre) }),
+                            updateDoc(miRef, { seguidos: arrayRemove(objetivo) })
+                        ]);
+                    } else {
+                        await Promise.all([
+                            updateDoc(objRef, { seguidores: arrayUnion(window.usuarioActualGlobal.nombre) }),
+                            updateDoc(miRef, { seguidos: arrayUnion(objetivo) })
+                        ]);
+                        window.registrarActividad(`Comenzó a seguir a ${objetivo}`);
+                    }
+                } catch (error) {
+                    console.error("Error de red de fondo, revirtiendo estado...", error);
+                    // Reversión silenciosa sólo si hay error crítico de red
+                    if (yaLoSigo) {
+                        btnSeguir.classList.add("siguiendo");
+                        btnSeguir.innerText = "DEJAR DE SEGUIR";
+                        statSeguidores.innerText = followersCount;
+                    } else {
+                        btnSeguir.classList.remove("siguiendo");
+                        btnSeguir.innerText = "SEGUIR";
+                        statSeguidores.innerText = followersCount;
+                    }
+                }
+            }, 0);
+        };
         window.abrirConfiguracion = async function() {
             window.conmutarSidebar(false);
             const docSnap = await getDoc(doc(db, "perfiles_detalles", window.usuarioActualGlobal.nombre));
             const data = docSnap.exists() ? docSnap.data() : {};
-
             document.getElementById("modal-gen-titulo").innerText = "Configurar mi Perfil";
             document.getElementById("modal-gen-contenido").innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:10px;">
@@ -732,11 +878,11 @@ window.interactuarLike = async function(postId) {
                         <option value="General" ${data.carrera === 'General' ? 'selected':''}>General</option>
                     </select>
                     <label>Fecha de Cumpleaños:</label>
-                    <input type="text" id="cfg-cumple" value="${data.cumpleanos || ''}" placeholder="Ej: 14 de Febrero" style="padding:8px; background:#111; color:white; border:1px solid #333; border-radius:6px;">
+                    <input type="text" id="cfg-cumple" value="${window.sanitizarTexto(data.cumpleanos || '')}" placeholder="Ej: 14 de Febrero" style="padding:8px; background:#111; color:white; border:1px solid #333; border-radius:6px;">
                     <label>Contacto (WhatsApp/Celular):</label>
-                    <input type="text" id="cfg-contacto" value="${data.contacto || ''}" placeholder="Ej: +591 71234567" style="padding:8px; background:#111; color:white; border:1px solid #333; border-radius:6px;">
+                    <input type="text" id="cfg-contacto" value="${window.sanitizarTexto(data.contacto || '')}" placeholder="Ej: +591 71234567" style="padding:8px; background:#111; color:white; border:1px solid #333; border-radius:6px;">
                     <label>Descripción / Biografía Corta:</label>
-                    <textarea id="cfg-desc" style="padding:8px; background:#111; color:white; border:1px solid #333; border-radius:6px; height:60px;">${data.descripcion || ''}</textarea>
+                    <textarea id="cfg-desc" style="padding:8px; background:#111; color:white; border:1px solid #333; border-radius:6px; height:60px;">${window.sanitizarTexto(data.descripcion || '')}</textarea>
                     <button type="button" onclick="guardarConfiguracionFenix()" style="background:var(--color-verde-neon); color:black; font-weight:bold; padding:10px; border:none; border-radius:6px; cursor:pointer; margin-top:10px;">Guardar Cambios</button>
                 </div>
             `;
@@ -748,11 +894,12 @@ window.interactuarLike = async function(postId) {
             const cumple = document.getElementById("cfg-cumple").value.trim();
             const contacto = document.getElementById("cfg-contacto").value.trim();
             const desc = document.getElementById("cfg-desc").value.trim();
-
+            
+            // Restricción mantenida estrictamente
             if (desc.split(/\s+/).length > 14) {
                 return alert("Tu descripción no puede exceder las 14 palabras para mantener el diseño limpio.");
             }
-
+            
             await setDoc(doc(db, "perfiles_detalles", window.usuarioActualGlobal.nombre), {
                 carrera: carrera,
                 cumpleanos: cumple || "Sin registrar",
@@ -760,7 +907,7 @@ window.interactuarLike = async function(postId) {
                 descripcion: desc || "Sin descripción.",
                 esDocente: (window.usuarioActualGlobal.nombre === "angel" || window.usuarioActualGlobal.nombre.includes("licenciado"))
             }, { merge: true });
-
+            
             document.getElementById("modal-generico").style.display = "none";
             window.registrarActividad("Actualizó sus datos de configuración de perfil");
             await actualizarInterfazPerfil();
@@ -768,28 +915,24 @@ window.interactuarLike = async function(postId) {
             window.desplegarFeed();
         };
 
-        // HISTORIAL DE ACTIVIDADES REAL E INTEGRAL
         window.verMiHistorialReal = async function() {
             window.conmutarSidebar(false);
             document.getElementById("modal-gen-titulo").innerText = "Mi Historial Real de Actividades";
             document.getElementById("modal-gen-contenido").innerHTML = `<div style="color:var(--texto-secundario);"><i class="fa-solid fa-spinner fa-spin"></i> Cargando registro...</div>`;
             document.getElementById("modal-generico").style.display = "flex";
-
             try {
                 const q = query(collection(db, "actividades"), where("usuario", "==", window.usuarioActualGlobal.nombre), orderBy("timestamp", "desc"));
                 const snap = await getDocs(q);
-
                 if(snap.empty) {
                     document.getElementById("modal-gen-contenido").innerHTML = `<p style="color:var(--texto-secundario); text-align:center;">Aún no se registran actividades en tu historial de red social.</p>`;
                     return;
                 }
-
                 let html = `<ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">`;
                 snap.forEach(d => {
                     const act = d.data();
                     html += `
                         <li style="background:rgba(255,255,255,0.02); padding:10px; border-radius:6px; border-left:3px solid var(--color-verde-neon);">
-                            <span style="color:white; font-size:13px; display:block;">${act.accion}</span>
+                            <span style="color:white; font-size:13px; display:block;">${window.sanitizarTexto(act.accion)}</span>
                             <span style="color:var(--texto-secundario); font-size:11px;">${formatearFechaLimpia(act.timestamp)}</span>
                         </li>
                     `;
@@ -801,63 +944,82 @@ window.interactuarLike = async function(postId) {
             }
         };
 
-        // RENDERING Y CONTROL DE WIDGETS LADO IZQUIERDO (RECURSOS Y EVENTOS REALES PERPETUOS)
-        window.cargarRecursosYEventos = function() {
+window.cargarRecursosYEventos = function() {
+            // 📌 ESCUCHA EN TIEMPO REAL: RECURSOS / AVISOS
             onSnapshot(query(collection(db, "recursos"), orderBy("timestamp", "desc")), (snap) => {
                 const box = document.getElementById("contenedor-recursos");
+                if (!box) return;
+                
                 box.innerHTML = "";
                 if(snap.empty) {
-                    box.innerHTML = `<p style="color:var(--texto-secundario); font-size:12px;">No hay material compartido todavía.</p>`;
+                    box.innerHTML = `<p style="color:var(--texto-secundario); font-size:12px;">No hay avisos ni notas publicadas todavía.</p>`;
+                    return;
                 }
+                
                 snap.forEach(d => {
                     const rec = d.data();
+                    
+                    // Sistema estricto de moderación y borrado
                     const bBorrar = (window.usuarioActualGlobal.nombre === "angel" || window.usuarioActualGlobal.nombre.includes("licenciado"))
-                        ? `<i class="fa-solid fa-circle-xmark" onclick="eliminarRecursoReal('${d.id}')" style="color:#ef4444; cursor:pointer; font-size:14px;" title="Borrar Material"></i>`
+                        ? `<i class="fa-solid fa-circle-xmark" onclick="eliminarRecursoReal('${d.id}')" style="color:#ef4444; cursor:pointer; font-size:14px; margin-left:6px;" title="Borrar Aviso"></i>`
                         : "";
                     
                     const div = document.createElement("div");
-                    div.style = "background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; margin-bottom:8px; display:flex; justify-content:between; align-items:center; gap:8px;";
+                    div.style = "background: rgba(0, 255, 102, 0.02); padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(0, 255, 102, 0.08); font-family: monospace;";
+                    
                     div.innerHTML = `
-                        <div style="flex:1;">
-                            <h5 style="color:white; font-size:12px; margin:0;"><i class="fa-solid fa-file-lines" style="color:var(--color-verde-neon); margin-right:4px;"></i> ${rec.titulo}</h5>
-                            <a href="${rec.enlace}" target="_blank" style="color:var(--color-verde-neon); font-size:11px; text-decoration:none; display:inline-block; margin-top:2px; word-break:break-all;">Abrir Material Externo</a>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                            <div style="flex: 1;">
+                                <h5 style="color: var(--color-verde-neon); font-size: 12px; margin: 0; text-transform: uppercase; font-weight: bold;">
+                                    📌 ${window.sanitizarTexto(rec.titulo)}
+                                </h5>
+                                <span style="color: #555; font-size: 9px; display: block; margin-top: 1px;">Por: ${window.sanitizarTexto(rec.autor || "Docente")}</span>
+                            </div>
+                            ${bBorrar}
                         </div>
-                        ${bBorrar}
+                        
+                        <p style="color: #cbd5e1; font-size: 11px; line-height: 1.4; margin: 6px 0 0 0; white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.2); padding: 6px; border-radius: 4px; border-left: 2px solid rgba(0, 255, 102, 0.3);">
+                            ${window.sanitizarTexto(rec.enlace || "")}
+                        </p>
                     `;
+                    
                     box.appendChild(div);
                 });
             });
 
+            // 📅 ESCUCHA EN TIEMPO REAL: EVENTOS INSTITUCIONALES
             onSnapshot(query(collection(db, "eventos"), orderBy("timestamp", "desc")), (snap) => {
                 const box = document.getElementById("contenedor-eventos");
+                if (!box) return;
+                
                 box.innerHTML = "";
                 if(snap.empty) {
                     box.innerHTML = `<p style="color:var(--texto-secundario); font-size:12px;">Sin eventos próximos.</p>`;
+                    return;
                 }
+                
                 snap.forEach(d => {
                     const ev = d.data();
                     const asistentes = ev.asistentes || [];
                     const yaAsisto = asistentes.includes(window.usuarioActualGlobal.nombre);
-                    
                     const pct = Math.min(100, Math.round((asistentes.length / window.totalUsuariosApp) * 100));
-
+                    
                     const bBorrarEv = (window.usuarioActualGlobal.nombre === "angel")
                         ? `<i class="fa-solid fa-trash" onclick="eliminarEventoReal('${d.id}')" style="color:#ef4444; cursor:pointer; font-size:12px;"></i>`
                         : "";
-
+                        
                     const btnTexto = yaAsisto ? `<i class="fa-solid fa-circle-check"></i> Asistiendo` : `Asistiré`;
                     const btnEstilo = yaAsisto ? `background:rgba(16,185,129,0.2); color:var(--color-verde-neon); border:1px solid var(--color-verde-neon);` : `background:var(--color-verde-neon); color:black;`;
-
+                    
                     const div = document.createElement("div");
                     div.className = "evento-card";
                     div.style = "margin-bottom:12px; padding:10px; background:rgba(255,255,255,0.02); border-radius:8px;";
                     div.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:6px;">
-                            <h5 style="color:white; font-size:13px; margin:0;">${ev.titulo}</h5>
+                            <h5 style="color:white; font-size:13px; margin:0;">${window.sanitizarTexto(ev.titulo)}</h5>
                             ${bBorrarEv}
                         </div>
-                        <p style="color:var(--texto-secundario); font-size:11px; margin:4px 0;">${ev.descripcion}</p>
-                        
+                        <p style="color:var(--texto-secundario); font-size:11px; margin:4px 0;">${window.sanitizarTexto(ev.descripcion)}</p>
                         <div style="margin:8px 0 4px 0;">
                             <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--texto-secundario); margin-bottom:2px;">
                                 <span>Asistencia general</span>
@@ -867,7 +1029,6 @@ window.interactuarLike = async function(postId) {
                                 <div style="width:${pct}%; height:100%; background:var(--color-verde-neon); transition:width 0.4s ease;"></div>
                             </div>
                         </div>
-
                         <button type="button" class="btn-accion-widget" onclick="registrarAsistenciaEvento('${d.id}')" style="width:100%; padding:6px; margin-top:6px; border-radius:4px; font-weight:bold; cursor:pointer; ${btnEstilo}">
                             ${btnTexto}
                         </button>
@@ -877,29 +1038,42 @@ window.interactuarLike = async function(postId) {
             });
         };
 
-        // ACCIONES DE REGISTRO PARA EXCLUSIVOS MODERADORES/DOCENTES
-        window.subirRecursoProfesor = async function() {
-            const titulo = prompt("Nombre o título del material de apoyo:");
-            if(!titulo) return;
-            const enlace = prompt("Introduce el enlace URL o recurso web del material:", "https://");
-            if(!enlace) return;
+        // 🚀 PUBLICAR NOTA / AVISO EN TEXTO (0ms DE RETRASO VISUAL)
+        window.subirRecursoProfesor = function() {
+            const titulo = prompt("Título del aviso o nota corta:");
+            if (!titulo) return;
 
-            await addDoc(collection(db, "recursos"), {
-                titulo: titulo,
-                enlace: enlace,
-                autor: window.usuarioActualGlobal.nombre,
-                timestamp: Date.now()
-            });
-            window.registrarActividad(`Subió el material educativo: "${titulo}"`);
-            alert("Recurso subido al panel estudiantil.");
+            const notaTexto = prompt("Escribe el contenido del aviso / comunicado para los alumnos:");
+            if (!notaTexto) return;
+
+            // --- RESPUESTA OPTIMISTA INMEDIATA (0ms) ---
+            alert("📌 Publicando aviso en el tablón estudiantil...");
+
+            // --- DELEGACIÓN DE FONDO SILENCIOSA CON TIMEOUT 0 ---
+            setTimeout(async () => {
+                try {
+                    await addDoc(collection(db, "recursos"), {
+                        titulo: titulo,
+                        enlace: notaTexto, 
+                        autor: window.usuarioActualGlobal.nombre,
+                        timestamp: Date.now()
+                    });
+
+                    window.registrarActividad(`Publicó un aviso: "${titulo}"`);
+
+                } catch (error) {
+                    console.error("Error al guardar la nota en Firestore:", error);
+                    alert("❌ Hubo un fallo en la matriz al guardar el aviso.");
+                }
+            }, 0);
         };
 
+        // 📅 CREAR NUEVO EVENTO
         window.crearNuevoEvento = async function() {
             const titulo = prompt("Título del evento institucional:");
             if(!titulo) return;
             const desc = prompt("Breve descripción del evento:");
             if(!desc) return;
-
             await addDoc(collection(db, "eventos"), {
                 titulo: titulo,
                 descripcion: desc,
@@ -910,7 +1084,7 @@ window.interactuarLike = async function(postId) {
             alert("Evento publicado de forma real en la red.");
         };
 
-        // CONTROL ASISTENCIA INTERACTIVA SIN BORRAR EL COMPONENTE
+        // 🙋‍♂️ REGISTRAR ASISTENCIA A EVENTO
         window.registrarAsistenciaEvento = async function(eventoId) {
             const evRef = doc(db, "eventos", eventoId);
             const snap = await getDoc(evRef);
@@ -937,57 +1111,54 @@ window.interactuarLike = async function(postId) {
             }
         };
 
-// SISTEMA DE NOTIFICACIONES EN TIEMPO REAL
-    window.registrarAccionNotificable = async function(usuarioDestino, mensaje) {
-        await addDoc(collection(db, "notificaciones"), {
-            destino: usuarioDestino,
-            origen: usuarioActualGlobal.nombre,
-            mensaje: mensaje,
-            leido: false,
-            timestamp: Date.now()
-        });
-    };
+        window.registrarAccionNotificable = async function(usuarioDestino, mensaje) {
+            await addDoc(collection(db, "notificaciones"), {
+                destino: usuarioDestino,
+                origen: window.usuarioActualGlobal.nombre,
+                mensaje: window.sanitizarTexto(mensaje),
+                leido: false,
+                timestamp: Date.now()
+            });
+        };
 
-    window.escucharNotificaciones = function() {
-        const q = query(collection(db, "notificaciones"), where("destino", "==", usuarioActualGlobal.nombre), where("leido", "==", false));
-        onSnapshot(q, (snap) => {
-            const punto = document.getElementById("indicador-notificacion");
-            if(!snap.empty) punto.style.display = "block";
-            else punto.style.display = "none";
-        });
-    };
+        window.escucharNotificaciones = function() {
+            const q = query(collection(db, "notificaciones"), where("destino", "==", window.usuarioActualGlobal.nombre), where("leido", "==", false));
+            onSnapshot(q, (snap) => {
+                const punto = document.getElementById("indicador-notificacion");
+                if(!snap.empty) punto.style.display = "block";
+                else punto.style.display = "none";
+            });
+        };
 
-    window.abrirNotificaciones = async function() {
-        document.getElementById("modal-gen-titulo").innerText = "Notificaciones";
-        const contenedor = document.getElementById("modal-gen-contenido");
-        contenedor.innerHTML = "<p>Cargando...</p>";
-        document.getElementById("modal-generico").style.display = "flex";
+        window.abrirNotificaciones = async function() {
+            document.getElementById("modal-gen-titulo").innerText = "Notificaciones";
+            const contenedor = document.getElementById("modal-gen-contenido");
+            contenedor.innerHTML = "<p>Cargando...</p>";
+            document.getElementById("modal-generico").style.display = "flex";
+            const q = query(collection(db, "notificaciones"), where("destino", "==", window.usuarioActualGlobal.nombre), orderBy("timestamp", "desc"));
+            const snap = await getDocs(q);
 
-        const q = query(collection(db, "notificaciones"), where("destino", "==", usuarioActualGlobal.nombre), orderBy("timestamp", "desc"));
-        const snap = await getDocs(q);
-        
-        if(snap.empty) {
-            contenedor.innerHTML = "<p style='color:gray;'>No tienes notificaciones nuevas.</p>";
-            return;
-        }
-
-        let htmlStr = "";
-        snap.forEach(d => {
-            const noti = d.data();
-            htmlStr += `
-                <div style="background:rgba(34,197,94,0.05); padding:10px; border-radius:8px; margin-bottom:8px; display:flex; align-items:center; gap:10px;">
-                    <i class="fa-solid fa-bell" style="color:var(--color-verde-neon);"></i>
-                    <div>
-                        <strong style="text-transform:capitalize; cursor:pointer;" onclick="abrirPerfilUsuario('${noti.origen}')">${noti.origen}</strong> ${noti.mensaje}
-                        <div style="font-size:10px; color:gray;">${new Date(noti.timestamp).toLocaleString()}</div>
+            if(snap.empty) {
+                contenedor.innerHTML = "<p style='color:gray;'>No tienes notificaciones nuevas.</p>";
+                return;
+            }
+            let htmlStr = "";
+            snap.forEach(d => {
+                const noti = d.data();
+                htmlStr += `
+                    <div style="background:rgba(34,197,94,0.05); padding:10px; border-radius:8px; margin-bottom:8px; display:flex; align-items:center; gap:10px;">
+                        <i class="fa-solid fa-bell" style="color:var(--color-verde-neon);"></i>
+                        <div>
+                            <strong style="text-transform:capitalize; cursor:pointer;" onclick="abrirPerfilUsuario('${window.sanitizarTexto(noti.origen)}')">${window.sanitizarTexto(noti.origen)}</strong> ${window.sanitizarTexto(noti.mensaje)}
+                            <div style="font-size:10px; color:gray;">${new Date(noti.timestamp).toLocaleString()}</div>
+                        </div>
                     </div>
-                </div>
-            `;
-            if(!noti.leido) updateDoc(doc(db, "notificaciones", d.id), { leido: true });
-        });
-        contenedor.innerHTML = htmlStr;
-        document.getElementById("indicador-notificacion").style.display = "none";
-    };
+                `;
+                if(!noti.leido) updateDoc(doc(db, "notificaciones", d.id), { leido: true });
+            });
+            contenedor.innerHTML = htmlStr;
+            document.getElementById("indicador-notificacion").style.display = "none";
+        };
     </script>
 </body>
 </html>
